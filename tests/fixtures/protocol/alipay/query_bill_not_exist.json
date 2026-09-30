@@ -1,0 +1,10 @@
+{
+  "_comment": "账单不存在：code=40004 业务失败 + sub_code=isv.bill-not-exist。映射为 BILL_NOT_EXIST，不重试。",
+  "_http_status": 200,
+  "alipay_bill_downloadurl_query_response": {
+    "code": "40004",
+    "msg": "Business Failed",
+    "sub_code": "isv.bill-not-exist",
+    "sub_msg": "交易账单文件不存在"
+  }
+}

@@ -1,0 +1,89 @@
+# 银联账单对账契约
+# 维护人：财务科对账岗（口径）+ 信息科接口岗（文件通道）
+# 院内导出的银联账单常为 GBK 编码、竖线/制表符分隔，取数侧需按格式探测（Task 10）
+name: 银联账单对账契约
+version: "1.0"
+channel: unionpay
+description: 银联渠道账单对账口径（本轮为院内文件通道，非最终对接方式）
+
+variables:
+  period: "2026-W36"
+  session_timezone: "Asia/Shanghai"
+
+dataset:
+  name: 银联账单
+  tables:
+    - name: unionpay_bill
+      location: inbox/${period}/unionpay/
+      description: 院内导出的银联账单文件（编码与分隔符由格式探测决定）
+      columns:
+        - name: out_trade_no
+          data_type: string
+          description: 商户订单号（对应 HIS 收费记录主键）
+          required: true
+          checks:
+            - name: 商户订单号唯一
+              path: [out_trade_no, unique]
+              type: unique
+        - name: trade_no
+          data_type: string
+          description: 银联交易流水号
+          required: true
+        - name: amount
+          data_type: decimal
+          description: 交易金额（元）
+          required: true
+          checks:
+            - name: 金额两位小数
+              path: [amount, scale]
+              type: decimal_scale
+              scale: 2
+        - name: trade_time
+          data_type: datetime
+          description: 交易时间
+          required: true
+        - name: settle_type
+          data_type: string
+          description: 结算方式
+          required: true
+          checks:
+            - name: 结算方式枚举
+              path: [settle_type, in_enum]
+              type: in_enum
+              values: [微信, 支付宝, 银联, 自助机, 医保, 现金, 银行卡, 银行转账]
+        - name: is_refund
+          data_type: boolean
+          description: 是否红冲退费
+          required: false
+      checks:
+        - name: 订单号与银联交易单号不得同值
+          path: [trade_no, distinct_from, out_trade_no]
+          type: column_not_equal
+          other: out_trade_no
+          # 院内导出的银联账单同时带「订单号」与「银联交易单号」两列以备与
+          # HIS 交叉核对。两列同值时交叉核对能力为零，而合计仍对得上 ——
+          # 这类问题只能靠本口径抓。
+        - name: 账单笔数不为零
+          path: [rows, row_count]
+          type: row_count
+          min: 1
+
+# dataset 级对账口径
+checks:
+  - name: 交易金额合计与 HIS 对照
+    path: [rows, amount_sum, compare_his]
+    type: decimal_sum
+    column: amount
+    exclude_where: {is_refund: true}
+    tolerance: "0.01"
+  - name: 红冲退费金额单列
+    path: [rows, refund_sum]
+    type: decimal_sum
+    column: amount
+    where: {is_refund: true}
+  - name: 跨日切分：交易时间须落在账期窗口内
+    path: [rows, trade_time, in_period]
+    type: cross_period
+    column: trade_time
+    period_variable: period
+    timezone_variable: session_timezone

@@ -1,0 +1,563 @@
+/* 面板样式。取色与版式逐条对着 docs/concepts/visual-target.md 的视觉目标卡：
+   底色 #0f1419、卡片 #1a2129、正文 #c9d4de、主强调青 #3fb8af，
+   成因色块红/橙/黄/紫/灰/蓝六色，中栏差异最显眼（左侧 4px 竖条 + 最大字号）。
+   信息层级：中栏 → 左栏 → 右栏。行高 28px、区块间距 24px。 */
+
+:root {
+  --bg: #0f1419;
+  --card: #1a2129;
+  --card-2: #212a34;
+  --text: #c9d4de;
+  --text-dim: #7d8a97;
+  --accent: #3fb8af;
+  --border: #2b3540;
+
+  --badge-green: #3fb87f;
+  --badge-yellow: #d9c04a;
+  --badge-red: #e5534b;
+  --badge-gray: #55636f;
+
+  /* 成因色块（视觉目标卡第二节的中栏竖条） */
+  --cause-orange: #e08c3b;
+  --cause-red: #e5534b;
+  --cause-yellow: #d9c04a;
+  --cause-purple: #9a7fd1;
+  --cause-gray: #7d8a97;
+  --cause-blue: #4a9de0;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 14px;
+  line-height: 28px;
+}
+
+code, .mono, .amount, .rowno {
+  font-family: ui-monospace, "Sarasa Mono SC", Menlo, Consolas, monospace;
+  /* 等宽还不够：默认字体的 1 与 8 仍不等宽，竖排扫一列金额时会看成
+     「86.00 / 810.00」对齐而实际没对齐。tabular-nums 强制数字等宽，
+     财务科横向核金额时才对得上。 */
+  font-variant-numeric: tabular-nums;
+}
+
+/* —— 顶栏 —— */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 24px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand-name { font-size: 16px; font-weight: 600; color: var(--accent); }
+.brand-sub { margin-left: 12px; color: var(--text-dim); font-size: 12px; }
+
+.period-picker { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.period-picker label { color: var(--text-dim); font-size: 12px; }
+
+select, input[type="text"] {
+  background: var(--card-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 13px;
+  min-width: 120px;
+}
+
+button {
+  background: var(--card-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+button:disabled { opacity: .4; cursor: not-allowed; }
+button.primary { border-color: var(--accent); color: var(--accent); }
+button.danger:hover:not(:disabled) { border-color: var(--badge-red); color: var(--badge-red); }
+
+.gate {
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  border: 1px solid var(--border);
+}
+.gate-green { color: var(--badge-green); border-color: var(--badge-green); }
+.gate-yellow { color: var(--badge-yellow); border-color: var(--badge-yellow); }
+.gate-red { color: var(--badge-red); border-color: var(--badge-red); }
+.gate-none { color: var(--text-dim); }
+
+.status-zh { color: var(--text-dim); font-size: 12px; }
+
+.stream-state { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot-on { background: var(--badge-green); }
+.dot-off { background: var(--badge-gray); }
+
+/* —— 进度条 —— */
+
+.progress-track {
+  height: 2px;
+  background: var(--border);
+}
+.progress-bar {
+  height: 2px;
+  background: var(--accent);
+  transition: width .4s ease;
+}
+.progress-text {
+  padding: 2px 24px 6px;
+  font-size: 12px;
+  color: var(--text-dim);
+  background: var(--bg);
+}
+
+/* —— 三栏 —— */
+
+.three-col {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 380px;
+  gap: 24px;
+  padding: 16px 24px;
+  align-items: start;
+}
+
+.col { min-width: 0; }
+.col-title {
+  margin: 0 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: .05em;
+}
+.col-head { display: flex; align-items: baseline; justify-content: space-between; }
+.col-head-right { display: flex; align-items: baseline; gap: 10px; }
+.sum-label { font-size: 12px; color: var(--text-dim); }
+.sum { color: var(--accent); font-size: 15px; }
+.count { color: var(--text-dim); font-size: 12px; }
+
+.empty { color: var(--text-dim); font-size: 13px; padding: 12px 0; }
+
+/* —— 左栏渠道卡 —— */
+
+.channel-list { display: flex; flex-direction: column; gap: 8px; }
+
+.channel-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+.channel-card.badge-green { border-left: 3px solid var(--badge-green); }
+.channel-card.badge-yellow { border-left: 3px solid var(--badge-yellow); }
+.channel-card.badge-red { border-left: 3px solid var(--badge-red); }
+/* 灰卡用虚线：与绿在视觉上必须一眼可分，否则少一路渠道会被读成「这路没问题」 */
+.channel-card.badge-gray { border-left: 3px dashed var(--badge-gray); }
+
+.channel-name { display: flex; align-items: center; justify-content: space-between; }
+.channel-name b { font-weight: 600; }
+.channel-badge { font-size: 11px; color: var(--text-dim); }
+.badge-green .channel-badge { color: var(--badge-green); }
+.badge-yellow .channel-badge { color: var(--badge-yellow); }
+.badge-red .channel-badge { color: var(--badge-red); }
+
+.channel-meta { font-size: 12px; color: var(--text-dim); }
+.channel-meta .amount { color: var(--text); }
+.channel-err { font-size: 11px; color: var(--badge-red); }
+
+/* —— 中栏差异行（全屏最显眼）—— */
+
+.diff-list { display: flex; flex-direction: column; gap: 2px; }
+
+.diff-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  /* 左侧 4px 成因竖条 + 最大字号 —— 视觉目标卡定的信息层级 */
+  border-left: 4px solid var(--cause-gray);
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 15px;
+}
+.diff-row:hover { border-color: var(--accent); }
+.diff-row.selected { background: var(--card-2); border-color: var(--accent); }
+.diff-row.resolved { opacity: .5; }
+
+.diff-row .chan { color: var(--text-dim); font-size: 12px; min-width: 84px; }
+.diff-row .cause { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.diff-row .amount { color: var(--accent); min-width: 96px; text-align: right; }
+.diff-row .rowno { color: var(--text-dim); font-size: 12px; min-width: 96px; }
+.diff-row .st { font-size: 11px; color: var(--text-dim); min-width: 72px; text-align: right; }
+
+/* 成因色块：与视觉目标卡第二节一一对应 */
+.c-重复计入, .c-duplicate { border-left-color: var(--cause-orange); }
+.c-漏传, .c-missing { border-left-color: var(--cause-red); }
+.c-跨日切分, .c-cross-period { border-left-color: var(--cause-yellow); }
+.c-退费未红冲, .c-refund { border-left-color: var(--cause-purple); }
+.c-金额精度, .c-amount { border-left-color: var(--cause-gray); }
+.c-待人工判定, .c-unknown { border-left-color: var(--cause-blue); }
+
+/* —— 右栏详情 —— */
+
+.detail { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+.detail h3 { margin: 0 0 8px; font-size: 14px; font-weight: 600; }
+.detail section { margin-bottom: 16px; }
+.detail h4 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: .05em;
+}
+.kv { display: grid; grid-template-columns: 84px 1fr; gap: 2px 8px; font-size: 13px; }
+.kv dt { color: var(--text-dim); }
+.kv dd { margin: 0; word-break: break-all; }
+
+.evidence-list { margin: 0; padding-left: 18px; font-size: 12px; color: var(--text-dim); }
+.evidence-list li { line-height: 22px; }
+
+.draft-box {
+  background: var(--card-2);
+  border-left: 3px solid var(--cause-blue);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.draft-box .draft-cause { color: var(--accent); font-weight: 600; }
+.draft-box .draft-meta { color: var(--text-dim); font-size: 11px; }
+
+.reject-box { color: var(--badge-red); font-size: 12px; }
+
+.actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.actions input[type="text"] { flex: 1; min-width: 140px; }
+.action-hint { color: var(--text-dim); font-size: 11px; }
+
+.settled { list-style: none; margin: 0; padding: 0; font-size: 12px; }
+.settled li { border-bottom: 1px solid var(--border); padding: 4px 0; color: var(--text-dim); }
+.settled li:last-child { border-bottom: none; }
+.settled .st-confirmed { color: var(--badge-green); }
+.settled .st-rejected { color: var(--badge-red); }
+
+/* —— 筛选条（Task 48）—— */
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-end;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.filter-bar .fld { display: flex; flex-direction: column; gap: 2px; }
+.filter-bar .fld > span { color: var(--text-dim); font-size: 11px; line-height: 1.4; }
+.filter-bar .fld-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 28px;
+}
+.filter-bar select,
+.filter-bar input[type="text"] {
+  min-width: 108px;
+  line-height: 24px;
+}
+/* 金额两栏窄一点：它们收的是「100.00」这样的短串，给宽了会把
+   状态/渠道两个更常改的下拉挤到第二行。 */
+.filter-bar .fld-narrow select,
+.filter-bar .fld-narrow input { min-width: 84px; }
+.fld-btn {
+  line-height: 24px;
+  padding: 0 10px;
+  background: var(--card-2);
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.fld-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+.filter-note {
+  padding: 4px 10px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 20px;
+  border-left: 3px solid var(--border);
+}
+.filter-note .fn-main { color: var(--text-dim); margin-right: 10px; }
+.filter-note .fn-warn { color: var(--cause-orange); }
+
+.group-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 2px 4px 6px;
+}
+.group-list { margin-bottom: 8px; }
+.group {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin-bottom: 6px;
+  background: var(--card);
+}
+.group-head {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 24px;
+  border-bottom: 1px solid transparent;
+}
+.group:hover .group-head { background: var(--card-2); }
+.group-caret { color: var(--text-dim); width: 12px; }
+.group-count { color: var(--text); }
+.group-amount {
+  color: var(--accent);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.group-pending { color: var(--cause-orange); font-size: 12px; }
+/* 出处标签：这四个字是「规则推断(未经模型)」与「人工已确认」的分界，
+   少了它，签字的人分不出这一组成因是谁说的。 */
+.group-src { color: var(--text-dim); font-size: 11px; }
+.group-key {
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-left: auto;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+.group-body { padding: 2px 0; }
+.group-body .diff-row { margin: 0 6px; }
+
+/* 长单号可复制：交办单要粘给渠道方，截断了对方没法回查 */
+.diff-row .ono {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  cursor: copy;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.diff-row .ono:hover { color: var(--accent); text-decoration: underline; }
+
+/* —— 待办聚合（Task 48）—— */
+
+.todo-bar {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 6px 10px;
+  margin-bottom: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.todo-bar .fld { display: flex; flex-direction: column; gap: 2px; }
+.todo-bar .fld > span { color: var(--text-dim); font-size: 11px; line-height: 1.4; }
+.todo-sum { display: flex; flex-direction: column; line-height: 1.5; }
+.todo-sum b { color: var(--text); font-size: 13px; }
+.todo-amount {
+  color: var(--accent);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+}
+.todo-oldest { color: var(--text-dim); font-size: 12px; }
+
+/* —— 右栏：决策辅助（Task 48）—— */
+
+.aid { margin: 10px 0; display: flex; flex-direction: column; gap: 8px; }
+
+.aid-adopted {
+  padding: 8px 10px;
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
+  border-radius: 4px;
+  background: var(--card-2);
+}
+/* 「无可采信的结论」要显眼：它是本产品最常见也最需要人动手的状态，
+   框得太温和会被当成「系统没显示出来」。 */
+.aid-adopted.aid-none { border-color: var(--cause-orange); }
+.aid-adopted-label { color: var(--text-dim); font-size: 11px; line-height: 1.4; }
+.aid-adopted-src { color: var(--accent); font-size: 13px; line-height: 1.6; }
+.aid-none .aid-adopted-src { color: var(--cause-orange); }
+.aid-adopted-why { color: var(--text-dim); font-size: 12px; line-height: 1.6; }
+.aid-adopted-note { color: var(--text); font-size: 12px; line-height: 1.6; }
+
+.aid-card {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  background: var(--card);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.aid-head { display: flex; gap: 8px; align-items: baseline; }
+.aid-tag {
+  color: var(--text-dim);
+  font-size: 11px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 0 4px;
+}
+.aid-cause { color: var(--text); }
+.aid-refs, .aid-meta { color: var(--text-dim); font-size: 11px; }
+.aid-hit {
+  color: var(--text-dim);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 11px;
+}
+.aid-hit-yes { border-left: 3px solid var(--badge-yellow); }
+.aid-ok { color: var(--badge-green); }
+.aid-bad { color: var(--badge-red); }
+.aid-mm { color: var(--badge-red); font-size: 11px; }
+
+/* —— 操作反馈（Task 48）—— */
+
+.act-feedback {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  padding: 4px 8px;
+  margin-bottom: 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.act-feedback.ok { background: rgba(63, 184, 127, .12); border-left: 3px solid var(--badge-green); }
+.act-feedback.err { background: rgba(229, 83, 75, .12); border-left: 3px solid var(--badge-red); }
+.af-who { color: var(--text-dim); font-size: 11px; margin-left: auto; }
+
+/* —— 页脚 —— */
+
+.footbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 24px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 12px;
+}
+.foot-hint { color: var(--text-dim); }
+
+/* 结论单下载。禁用态不是「变灰一点」而是**没有 href** —— 靠 JS 摘掉
+   href 才真的点不动，灰度只是辅助提示。 */
+.foot-export {
+  color: var(--accent, #1a6fb5);
+  text-decoration: none;
+  margin-right: 12px;
+  border-bottom: 1px dashed currentColor;
+}
+.foot-export:hover { text-decoration: none; border-bottom-style: solid; }
+.foot-export-off {
+  color: var(--text-dim);
+  cursor: not-allowed;
+  border-bottom-style: dotted;
+}
+
+@media (max-width: 1100px) {
+  .three-col { grid-template-columns: 1fr; }
+}
+
+/* —— 状态标识：色 + 文字双重编码（Task 48 可读性硬要求）——
+   状态文字本身一直带在行里（「待确认」三个字），颜色只作**辅助**。
+   只靠颜色的话，色觉障碍同事看到的是一排同色行，而「谁该审什么」
+   恰恰是这一屏最要紧的信息。 */
+.diff-row .st { padding-left: 8px; position: relative; }
+.diff-row .st::before {
+  content: "";
+  position: absolute; left: 0; top: 50%;
+  width: 6px; height: 6px; margin-top: -3px;
+  border-radius: 50%; background: var(--badge-gray);
+}
+.diff-row .st-pending::before { background: var(--badge-yellow); }
+.diff-row .st-confirming::before { background: var(--accent); }
+.diff-row .st-supervisor::before { background: var(--cause-orange); }
+.diff-row .st-confirmed::before { background: var(--badge-green); }
+.diff-row .st-rejected::before { background: var(--badge-red); }
+.diff-row .st-unopened::before { background: var(--badge-gray); }
+/* 选中态再加一条左边框：颜色之外还有形状差异 */
+.diff-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.diff-row.selected { box-shadow: inset 3px 0 0 var(--accent); }
+
+/* —— 证据展开（候选行全表 + 快照引用 + 深链）—— */
+
+.evbox { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 6px; }
+.ev-toggle {
+  width: 100%;
+  text-align: left;
+  background: var(--card-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1.8;
+}
+.ev-toggle:hover { border-color: var(--accent); }
+.ev-body { padding: 4px 0; }
+.ev-body h4 { margin: 10px 0 4px; font-size: 12px; color: var(--text-dim); }
+.ev-err { color: var(--badge-red); font-size: 12px; }
+.ev-warn {
+  color: var(--badge-yellow);
+  font-size: 12px;
+  line-height: 1.7;
+  background: rgba(217, 192, 74, .10);
+  border-left: 3px solid var(--badge-yellow);
+  padding: 4px 8px;
+  margin: 4px 0;
+}
+
+.ev-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.ev-table th {
+  text-align: left; font-weight: normal; color: var(--text-dim);
+  border-bottom: 1px solid var(--border); padding: 2px 6px; white-space: nowrap;
+}
+.ev-table td {
+  padding: 2px 6px; border-bottom: 1px solid var(--border);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;
+}
+.ev-table td.amount { text-align: right; }
+.ev-table td.ono { cursor: copy; }
+
+.ev-snap {
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 4px 8px;
+  margin: 4px 0;
+  background: var(--card);
+}
+.ev-snap-head { font-size: 12px; }
+.ev-snap-meta { color: var(--text-dim); font-size: 11px; line-height: 1.7; }
+.ev-parts { margin: 4px 0 0; padding-left: 16px; font-size: 11px; color: var(--text-dim); }
+.ev-parts li { line-height: 1.7; }
+
+.ev-link { display: flex; align-items: baseline; gap: 8px; font-size: 12px; line-height: 1.8; }
+.ev-link-label { color: var(--text-dim); min-width: 108px; flex: none; }
+.ev-link-val { cursor: copy; word-break: break-all; }

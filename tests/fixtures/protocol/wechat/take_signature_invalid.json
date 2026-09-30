@@ -1,0 +1,13 @@
+{
+  "_comment": "验签失败样本：HTTP 200 且 download_url 完整——**报文长得完全正常**，只是 Wechatpay-Signature 与平台证书对不上（例如被中间设备改动、平台证书轮换后没换 WECHAT_PLATFORM_CERT_PATH）。本产品必须拒绝使用该响应的 download_url，抛 RESPONSE_SIGNATURE_INVALID，且不落任何账单行。三个 Wechatpay-* 头在测试中由 tests/protocol/test_wechat_protocol.py 用本地自签密钥构造，header 形态按官方规范。",
+  "_http_status": 200,
+  "_wechatpay_headers": {
+    "Wechatpay-Signature": "EXAM_PLACEHOLDER_BAD_SIGNATURE",
+    "Wechatpay-Timestamp": "1757203200",
+    "Wechatpay-Nonce": "0123456789abcdef0123456789abcdef",
+    "Wechatpay-Serial": "TESTPLATFORMSERIAL0001"
+  },
+  "hash_type": "SHA1",
+  "hash": "0000000000000000000000000000000000000000",
+  "download_url": "https://api.mch.weixin.qq.com/v3/bill/download/EXAM_TAMPERED_TOKEN_PLACEHOLDER?token=EXAM"
+}

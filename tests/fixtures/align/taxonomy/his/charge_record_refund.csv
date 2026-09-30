@@ -1,0 +1,3 @@
+his_order_no,charge_id,amount,charge_time,period_code,department,settle_type,is_refund
+EX-WX-TAX-REFUND-0001,CHG-TAX-R01,128.00,2026-09-03 15:20:00,2026-W36,门诊收费室,微信,false
+EX-WX-TAX-REFUND-0001,CHG-TAX-R02,42.00,2026-09-03 15:22:00,2026-W36,门诊收费室,微信,true

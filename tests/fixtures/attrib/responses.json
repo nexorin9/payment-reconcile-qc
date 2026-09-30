@@ -1,0 +1,527 @@
+{
+  "schema": "attrib-replay-responses/1",
+  "recorded_at": "2026-09-30",
+  "model": "reconq-attribution-1（院内自建 OpenAI-compatible 端点）",
+  "versions": ["v1", "v2", "v2-rc1"],
+  "note_zh": "回放录的是**各版提示词下模型的实际响应**，不是「正确答案」。同一份证据包在 v1 下模型给中文成因短语、在 v2 下给受控编码、在 v2-rc1 下把判不出来的那条硬猜成了拆笔 —— 回放要评的正是这个差别。drafts 由回放器按 sort_keys=False 原样序列化进响应正文；content 字段用于录「模型当时就是这么回的」的原样文本（围栏、非 JSON 等），两者只给其一。",
+  "responses": {
+    "01-channel-only-his-missing": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "HIS 侧漏做收费登记",
+            "confidence": 0.55,
+            "evidence_refs": ["wechat_bill.csv:3"],
+            "explanation_zh": "渠道有 66.00 元这笔收费，HIS 收费流水里查不到对应记录，像是收费处漏了登记。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "his_missing_order",
+            "confidence": 0.62,
+            "evidence_refs": ["wechat_bill.csv:3"],
+            "explanation_zh": "渠道侧有这一笔 66.00 元，HIS 收费流水里查不到同单号的记录。"
+          },
+          {
+            "cause": "channel_late_posting",
+            "confidence": 0.21,
+            "evidence_refs": ["wechat_bill.csv:3"],
+            "explanation_zh": "也不能排除渠道侧结算入账延迟，本期账单文件本身出得比平时晚。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "his_missing_order",
+            "confidence": 0.62,
+            "evidence_refs": ["wechat_bill.csv:3"],
+            "explanation_zh": "渠道侧有这一笔 66.00 元，HIS 收费流水里查不到同单号的记录。"
+          }
+        ]
+      }
+    },
+    "02-weak-match-pending": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "两侧单号对不上，可能是合并支付",
+            "confidence": 0.44,
+            "evidence_refs": ["alipay_bill.csv:5", "charge_record.csv:21"],
+            "explanation_zh": "渠道 88.00 元这笔和 HIS 的 88.00 元时间接近但单号不同，像是家属一次刷卡付了多个单子。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "undetermined",
+            "confidence": 0.41,
+            "evidence_refs": ["alipay_bill.csv:5", "charge_record.csv:21"],
+            "explanation_zh": "两侧金额都是 88.00 元、交易时间接近，但渠道单号与 HIS 单号对不上，现有账单列不足以判别是不是同一笔。"
+          },
+          {
+            "cause": "merged_payment_allocation",
+            "confidence": 0.19,
+            "evidence_refs": ["alipay_bill.csv:5", "charge_record.csv:21"],
+            "explanation_zh": "若确为同一笔，则可能是合并支付未分摊，需要收费处补分摊说明。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "merged_payment_allocation",
+            "confidence": 0.44,
+            "evidence_refs": ["alipay_bill.csv:5", "charge_record.csv:21"],
+            "explanation_zh": "渠道 88.00 元这笔和 HIS 的 88.00 元时间接近但单号不同，像是家属一次刷卡付了多个单子。"
+          }
+        ]
+      }
+    },
+    "03-ambiguous-split-payment": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "split_payment_unallocated",
+            "confidence": 0.58,
+            "evidence_refs": ["wechat_bill.csv:3"],
+            "explanation_zh": "渠道一笔 128.00 元，HIS 侧被拆成 50.00 元和 78.00 元两笔，属于一码付拆笔没分摊。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "split_payment_unallocated",
+            "confidence": 0.74,
+            "evidence_refs": [
+              "wechat_bill.csv:3",
+              "charge_record.csv:17",
+              "charge_record.csv:18"
+            ],
+            "explanation_zh": "渠道一笔 128.00 元，HIS 侧同一单号下有 50.00 元与 78.00 元两条，加总与渠道相等，属一码付拆笔未分摊。"
+          },
+          {
+            "cause": "undetermined",
+            "confidence": 0.14,
+            "evidence_refs": [
+              "wechat_bill.csv:3",
+              "charge_record.csv:17",
+              "charge_record.csv:18"
+            ],
+            "explanation_zh": "也不能完全排除是三笔独立收费恰好同一单号，需收费处核实。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "split_payment_unallocated",
+            "confidence": 0.74,
+            "evidence_refs": [
+              "wechat_bill.csv:3",
+              "charge_record.csv:17",
+              "charge_record.csv:18"
+            ],
+            "explanation_zh": "渠道一笔 128.00 元，HIS 侧同一单号下有 50.00 元与 78.00 元两条，加总与渠道相等，属一码付拆笔未分摊。"
+          }
+        ]
+      }
+    },
+    "04-ambiguous-merged-payment": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "merged_payment_allocation",
+            "confidence": 0.55,
+            "evidence_refs": [
+              "unionpay_bill.csv:7",
+              "charge_record.csv:31",
+              "charge_record.csv:32"
+            ],
+            "explanation_zh": "渠道一笔 300.00 元，HIS 侧同一单号下是 120.00 元与 90.00 元两条，合计与渠道侧不守恒，像是合并支付没分摊。"
+          },
+          {
+            "cause": "split_payment_unallocated",
+            "confidence": 0.3,
+            "evidence_refs": [
+              "unionpay_bill.csv:7",
+              "charge_record.csv:31",
+              "charge_record.csv:32"
+            ],
+            "explanation_zh": "另一种可能是渠道侧把一笔拆成了多行。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "merged_payment_allocation",
+            "confidence": 0.71,
+            "evidence_refs": [
+              "unionpay_bill.csv:7",
+              "charge_record.csv:31",
+              "charge_record.csv:32"
+            ],
+            "explanation_zh": "渠道一笔 300.00 元，HIS 侧同一单号下是 120.00 元与 90.00 元两条，两条加总与渠道侧不守恒，属合并支付未分摊。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "merged_payment_allocation",
+            "confidence": 0.71,
+            "evidence_refs": [
+              "unionpay_bill.csv:7",
+              "charge_record.csv:31",
+              "charge_record.csv:32"
+            ],
+            "explanation_zh": "渠道一笔 300.00 元，HIS 侧同一单号下是 120.00 元与 90.00 元两条，两条加总与渠道侧不守恒，属合并支付未分摊。"
+          }
+        ]
+      }
+    },
+    "05-ambiguous-refund-coexist": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "refund_offset_in_his",
+            "confidence": 0.66,
+            "evidence_refs": [
+              "wechat_bill.csv:9",
+              "charge_record.csv:41",
+              "charge_record.csv:42"
+            ],
+            "explanation_zh": "渠道原单 128.00 元、退款 42.00 元；HIS 侧同一单号下有 128.00 元原单与 -42.00 元红冲行，退费已在 HIS 红冲。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "refund_offset_in_his",
+            "confidence": 0.68,
+            "evidence_refs": [
+              "wechat_bill.csv:9",
+              "charge_record.csv:41",
+              "charge_record.csv:42"
+            ],
+            "explanation_zh": "渠道原单 128.00 元、退款 42.00 元；HIS 侧同一单号下有 128.00 元原单与 -42.00 元红冲行，退费已在 HIS 红冲。"
+          },
+          {
+            "cause": "bill_type_excludes_refund",
+            "confidence": 0.16,
+            "evidence_refs": ["wechat_bill.csv:9"],
+            "explanation_zh": "若本期账单类型不含退款行，则渠道侧看不到退费也可能是取件参数问题。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "refund_offset_in_his",
+            "confidence": 0.68,
+            "evidence_refs": [
+              "wechat_bill.csv:9",
+              "charge_record.csv:41",
+              "charge_record.csv:42"
+            ],
+            "explanation_zh": "渠道原单 128.00 元、退款 42.00 元；HIS 侧同一单号下有 128.00 元原单与 -42.00 元红冲行，退费已在 HIS 红冲。"
+          }
+        ]
+      }
+    },
+    "06-cross-period-landing": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "cross_period_duplicate",
+            "confidence": 0.6,
+            "evidence_refs": ["alipay_bill.csv:11"],
+            "explanation_zh": "这一笔落在账期边界上，周一零点归新账期，两边各记了一次。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "period_boundary_landing",
+            "confidence": 0.77,
+            "evidence_refs": ["alipay_bill.csv:11", "charge_record.csv:51"],
+            "explanation_zh": "这一笔交易时间 2026-09-07 00:00:00 正好落在账期窗口的闭开端点上，两侧对归属期的处理不一致。"
+          },
+          {
+            "cause": "cross_period_duplicate",
+            "confidence": 0.12,
+            "evidence_refs": ["alipay_bill.csv:11", "charge_record.csv:51"],
+            "explanation_zh": "若相邻两期账单里同一单号各出现一次，则是跨日切分重复计入。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "period_boundary_landing",
+            "confidence": 0.77,
+            "evidence_refs": ["alipay_bill.csv:11", "charge_record.csv:51"],
+            "explanation_zh": "这一笔交易时间 2026-09-07 00:00:00 正好落在账期窗口的闭开端点上，两侧对归属期的处理不一致。"
+          }
+        ]
+      }
+    },
+    "07-mismatch-amount": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "两边金额对不上",
+            "confidence": 0.5,
+            "evidence_refs": ["wechat_bill.csv:13", "charge_record.csv:61"],
+            "explanation_zh": "渠道 200.00 元、HIS 180.00 元，差额 20.00 元。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "contract_config_error",
+            "confidence": 0.58,
+            "evidence_refs": ["wechat_bill.csv:13", "charge_record.csv:61"],
+            "explanation_zh": "渠道 200.00 元、HIS 180.00 元，差额 20.00 元；两侧都不带本渠道这条口径的判据字段，更像口径取值与院内结算规程不符。"
+          },
+          {
+            "cause": "undetermined",
+            "confidence": 0.25,
+            "evidence_refs": ["wechat_bill.csv:13", "charge_record.csv:61"],
+            "explanation_zh": "也不能排除收费处少收或渠道侧多记，需要逐项核对。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "contract_config_error",
+            "confidence": 0.58,
+            "evidence_refs": ["wechat_bill.csv:13", "charge_record.csv:61"],
+            "explanation_zh": "渠道 200.00 元、HIS 180.00 元，差额 20.00 元；两侧都不带本渠道这条口径的判据字段，更像口径取值与院内结算规程不符。"
+          }
+        ]
+      }
+    },
+    "08-self-service-mismatch": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "金额不符",
+            "confidence": 0.48,
+            "evidence_refs": ["self_service_bill.csv:99"],
+            "explanation_zh": "自助机 45.00 元、HIS 40.00 元，差额 5.00 元。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "contract_config_error",
+            "confidence": 0.52,
+            "evidence_refs": ["self_service_bill.csv:4", "charge_record.csv:71"],
+            "explanation_zh": "自助机 45.00 元、HIS 40.00 元，差额 5.00 元，HIS 侧该笔结算方式记的是现金。"
+          },
+          {
+            "cause": "undetermined",
+            "confidence": 0.28,
+            "evidence_refs": ["self_service_bill.csv:4", "charge_record.csv:71"],
+            "explanation_zh": "也不能排除自助机侧少扣或 HIS 侧另收了部分费用。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "contract_config_error",
+            "confidence": 0.52,
+            "evidence_refs": ["self_service_bill.csv:4", "charge_record.csv:71"],
+            "explanation_zh": "自助机 45.00 元、HIS 40.00 元，差额 5.00 元，HIS 侧该笔结算方式记的是现金。"
+          }
+        ]
+      }
+    },
+    "09-duplicate-claim": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "重复认领",
+            "confidence": 0.45,
+            "evidence_refs": ["unionpay_bill.csv:6"],
+            "explanation_zh": "这条 HIS 收费已经被另一路渠道先认领过了，本路又报了一次。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "merged_payment_allocation",
+            "confidence": 0.49,
+            "evidence_refs": ["unionpay_bill.csv:6", "charge_record.csv:81"],
+            "explanation_zh": "这条 HIS 收费已被另一路渠道先认领，本路再报一次；两侧都是 130.00 元，可能是同一笔被两路各报。"
+          },
+          {
+            "cause": "contract_config_error",
+            "confidence": 0.18,
+            "evidence_refs": ["unionpay_bill.csv:6", "charge_record.csv:81"],
+            "explanation_zh": "若两路账单都含这一笔，则要核对该渠道的取件口径是否与院内一致。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "merged_payment_allocation",
+            "confidence": 0.49,
+            "evidence_refs": ["unionpay_bill.csv:6", "charge_record.csv:81"],
+            "explanation_zh": "这条 HIS 收费已被另一路渠道先认领，本路再报一次；两侧都是 130.00 元，可能是同一笔被两路各报。"
+          }
+        ]
+      }
+    },
+    "10-unknown-equal-amounts": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "split_payment_unallocated",
+            "confidence": 0.4,
+            "evidence_refs": [
+              "wechat_bill.csv:15",
+              "charge_record.csv:91",
+              "charge_record.csv:92"
+            ],
+            "explanation_zh": "渠道 66.00 元，HIS 侧同一单号下有两条 66.00 元，像是拆成两笔收费。"
+          },
+          {
+            "cause": "undetermined",
+            "confidence": 0.35,
+            "evidence_refs": [
+              "wechat_bill.csv:15",
+              "charge_record.csv:91",
+              "charge_record.csv:92"
+            ],
+            "explanation_zh": "两条候选金额全相同且与对侧不守恒，也可能压根是三笔独立收费。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "undetermined",
+            "confidence": 0.46,
+            "evidence_refs": [
+              "wechat_bill.csv:15",
+              "charge_record.csv:91",
+              "charge_record.csv:92"
+            ],
+            "explanation_zh": "候选两条都是 66.00 元且与对侧不守恒，账单列不足以判别成因，判为无法判定。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "split_payment_unallocated",
+            "confidence": 0.46,
+            "evidence_refs": [
+              "wechat_bill.csv:15",
+              "charge_record.csv:91",
+              "charge_record.csv:92"
+            ],
+            "explanation_zh": "渠道 66.00 元，HIS 侧同一单号下有两条 66.00 元，像是拆成两笔收费。"
+          }
+        ]
+      }
+    },
+    "11-missing-his-order-no": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "这笔可能重复计入了",
+            "confidence": 0.4,
+            "evidence_refs": ["self_service_bill.csv:8"],
+            "explanation_zh": "自助机这一笔 12.00 元看着像是上一期已经记过一次。"
+          },
+          {
+            "cause": "undetermined",
+            "confidence": 0.3,
+            "evidence_refs": ["self_service_bill.csv:8"],
+            "explanation_zh": "账单行没带 HIS 单号，现有列判不出来。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "his_missing_order",
+            "confidence": 0.44,
+            "evidence_refs": ["self_service_bill.csv:8"],
+            "explanation_zh": "自助机这一笔 12.00 元在 HIS 侧查不到对应记录，账单行也没带 HIS 单号，先按未落单交人工核实。"
+          },
+          {
+            "cause": "undetermined",
+            "confidence": 0.2,
+            "evidence_refs": ["self_service_bill.csv:8"],
+            "explanation_zh": "若导出方截断了单号，也可能压根不是同一笔。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "cross_period_duplicate",
+            "confidence": 0.44,
+            "evidence_refs": ["self_service_bill.csv:8"],
+            "explanation_zh": "自助机这一笔 12.00 元看着像是上一期已经记过一次。"
+          }
+        ]
+      }
+    },
+    "12-medical-ins-settlement-only": {
+      "v1": {
+        "drafts": [
+          {
+            "cause": "channel_late_posting",
+            "confidence": 0.5,
+            "evidence_refs": ["medical_ins_bill.csv:3"],
+            "explanation_zh": "医保侧有 320.00 元这笔结算，HIS 收费流水里还没有，可能是结算入账延迟。"
+          }
+        ]
+      },
+      "v2": {
+        "drafts": [
+          {
+            "cause": "his_missing_order",
+            "confidence": 0.6,
+            "evidence_refs": ["medical_ins_bill.csv:3"],
+            "explanation_zh": "医保结算单上这一笔 320.00 元在 HIS 收费流水里查不到对应记录。"
+          },
+          {
+            "cause": "channel_late_posting",
+            "confidence": 0.27,
+            "evidence_refs": ["medical_ins_bill.csv:3"],
+            "explanation_zh": "也不能排除医保侧结算入账比 HIS 落单晚。"
+          }
+        ]
+      },
+      "v2-rc1": {
+        "drafts": [
+          {
+            "cause": "his_missing_order",
+            "confidence": 0.6,
+            "evidence_refs": ["medical_ins_bill.csv:3"],
+            "explanation_zh": "医保结算单上这一笔 320.00 元在 HIS 收费流水里查不到对应记录。"
+          }
+        ]
+      }
+    }
+  }
+}

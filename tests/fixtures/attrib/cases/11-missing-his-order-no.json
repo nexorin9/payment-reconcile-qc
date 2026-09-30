@@ -1,0 +1,173 @@
+{
+  "bundle": {
+    "bundle_version": "evidence-bundle/1",
+    "candidate_cap": 5,
+    "candidate_rank_basis": "input_order",
+    "candidate_rows": [],
+    "candidate_shown": 0,
+    "candidate_source": "align.no_candidate_found",
+    "candidate_total": 0,
+    "candidate_truncated": false,
+    "channel": "self_service",
+    "channel_contract_slice": {
+      "available": true,
+      "check_shown": 7,
+      "check_total": 10,
+      "checks": [
+        {
+          "check_name": "账单笔数不为零",
+          "check_path": "rows.row_count",
+          "column": "",
+          "operator": "row_count",
+          "relevance": "直接相关",
+          "why": "表级口径 row_count 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "订单号唯一",
+          "check_path": "out_trade_no.unique",
+          "column": "out_trade_no",
+          "operator": "unique",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 out_trade_no 上"
+        },
+        {
+          "check_name": "收费记录号格式",
+          "check_path": "out_trade_no.format",
+          "column": "out_trade_no",
+          "operator": "matches_regex",
+          "relevance": "直接相关",
+          "why": "该口径既落在本差异涉及的列 out_trade_no 上，其判据也直接对应本差异形态"
+        },
+        {
+          "check_name": "金额两位小数",
+          "check_path": "amount.scale",
+          "column": "amount",
+          "operator": "decimal_scale",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 amount 上"
+        },
+        {
+          "check_name": "金额区间",
+          "check_path": "amount.between",
+          "column": "amount",
+          "operator": "between",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 amount 上"
+        },
+        {
+          "check_name": "缴费金额合计与 HIS 对照",
+          "check_path": "rows.amount_sum.compare_his",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "红冲退费金额单列",
+          "check_path": "rows.refund_sum",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        }
+      ],
+      "contract_name": "自助机账单对账契约",
+      "contract_version": "1.0",
+      "reason": "",
+      "truncated": false
+    },
+    "channel_meta": {
+      "bill_type": "院内文件导出",
+      "bill_type_source": "channel_default",
+      "channel": "self_service",
+      "channel_zh": "院内自助机",
+      "evidence_slice_sha256": "4384a634722fd7b00a773933f141636052ab193dbae84ff4e8d30b6f17aa2cfd",
+      "source_file_count": 1,
+      "source_files": [
+        "self_service_bill.csv"
+      ]
+    },
+    "conclusion_key": "self_service:2026-W36:ex-nocol-0011",
+    "diff_row": {
+      "amount": "12.00",
+      "cross_period": false,
+      "department": "",
+      "his_order_no": "",
+      "is_refund": false,
+      "net_amount": "12.00",
+      "order_no": "EX-NOCOL-0011",
+      "period": "2026-W36",
+      "record_id": "EX-NOCOL-0011",
+      "ref": "self_service_bill.csv:8",
+      "refund": null,
+      "settle_type": "",
+      "side": "channel",
+      "source_file": "self_service_bill.csv",
+      "source_row_no": 8,
+      "trade_time": "2026-09-06T10:05:00+08:00",
+      "trade_type": ""
+    },
+    "diff_side": "channel",
+    "discrepancy": {
+      "detail": "渠道 self_service_bill.csv:8 金额 12.00 元，单号 EX-NOCOL-0011 在 HIS 侧本账期无任何记录；请确认是漏收费、挂账未记还是跨账期落点",
+      "diff_amount": "",
+      "kind": "channel_only",
+      "kind_zh": "渠道有 HIS 无",
+      "needs_attribution": true
+    },
+    "history": {
+      "available": false,
+      "channel": "self_service",
+      "kind": "channel_only",
+      "periods": [
+        "2026-W32",
+        "2026-W33",
+        "2026-W34",
+        "2026-W35"
+      ],
+      "reasons": [
+        "未提供账单库连接：查不到历史处置结论（不等于没有先例）"
+      ],
+      "same_cause": {
+        "by_disposition": {},
+        "by_period": {},
+        "total": 0
+      },
+      "same_order_no": {
+        "available": false,
+        "by_period": {},
+        "occurrences": 0,
+        "reasons": [
+          "未提供账单库连接"
+        ]
+      },
+      "window_periods": 4
+    },
+    "period": "2026-W36",
+    "period_window": {
+      "available": true,
+      "end": "2026-09-07T00:00:00+08:00",
+      "half_open": true,
+      "period": "2026-W36",
+      "reason": "",
+      "start": "2026-08-31T00:00:00+08:00",
+      "tz": "Asia/Shanghai"
+    },
+    "same_order_no_rows": [],
+    "scoring_config_fingerprint": "d5ab8e742a1392f6b4dc863cd55a09154b327fbbefff188e667b2c03951a2c55"
+  },
+  "case_id": "11-missing-his-order-no",
+  "channel": "self_service",
+  "expect": {
+    "cause_codes": [
+      "undetermined",
+      "his_missing_order"
+    ],
+    "min_refs": 1,
+    "required_refs": [
+      "self_service_bill.csv:8"
+    ]
+  },
+  "kind": "channel_only",
+  "name_zh": "缺列：账单行没带 HIS 单号，判据字段无值"
+}

@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "payment-reconcile-qc"
+version = "0.1.0"
+description = "支付对账数据质检系统 — 六路渠道账单与 HIS 收费流水的契约化对账、实体对齐与可签字结论单"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "jinja2>=3.1",
+    "pyyaml>=6.0",
+    "pydantic>=2.6",
+    "httpx>=0.27",
+    "sqlalchemy>=2.0",
+    "python-dateutil>=2.9",
+    "aiosqlite>=0.19",
+    # 微信 V3 签名 / 账单 AES-256-GCM 解密、支付宝 RSA2 签名
+    "cryptography>=42.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+reconq = "reconq.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# 协议测试跨目录 import ``tests.protocol.conftest``，需要仓库根在 sys.path 上。
+# 只在 ``python -m pytest``（恰好把 CWD 塞进 sys.path）下能碰巧跑通；
+# 裸 ``pytest -q`` 会在**收集阶段**就以 ModuleNotFoundError: tests 中断，
+# 3 个协议文件一个都跑不到。这里显式声明，别让结果取决于「从哪敲的命令」。
+pythonpath = ["."]
+markers = [
+    "align_golden: 对齐黄金样例回归集",
+]

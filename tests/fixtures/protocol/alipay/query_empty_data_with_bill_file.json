@@ -1,0 +1,11 @@
+{
+  "_comment": "「有账单文件、无交易记录」：code=10000 是成功码，sub_code=EMPTY_DATA_WITH_BILL_FILE 描述业务状态。本产品按**空数据集**处理并带 empty_reason，绝不报失败把整路拖成红——对账岗的直觉会把这当错误。",
+  "_http_status": 200,
+  "alipay_bill_downloadurl_query_response": {
+    "code": "10000",
+    "msg": "Success",
+    "sub_code": "EMPTY_DATA_WITH_BILL_FILE",
+    "sub_msg": "账单文件生成成功，但是没有交易记录",
+    "sign": "EXAM_PLACEHOLDER_SIGNATURE"
+  }
+}

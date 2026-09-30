@@ -1,0 +1,124 @@
+# 医保结算对账契约
+# 维护人：医保办（口径）+ 财务科对账岗
+# 勾稽等式来源：domain/corpus/settlement/江苏省贯彻结算清单修订通知（含修订要点）
+#   金额合计 = 医保统筹 + 补充医疗 + 医疗救助 + 个人负担
+#   个人负担 = 其他支付 + 个人支付
+name: 医保结算对账契约
+version: "1.0"
+channel: medical_ins
+description: 医保结算单的对账口径；核心是两条勾稽等式
+
+variables:
+  period: "2026-W36"
+  session_timezone: "Asia/Shanghai"
+
+dataset:
+  name: 医保结算单
+  tables:
+    - name: medical_ins_settlement
+      location: inbox/${period}/medical_ins/
+      description: 医保结算清单导出（脱敏样例为本地文件通道，非最终对接方式）
+      columns:
+        - name: settlement_no
+          data_type: string
+          description: 结算号（对应 HIS 收费记录主键）
+          required: true
+          checks:
+            - name: 结算号唯一
+              path: [settlement_no, unique]
+              type: unique
+        - name: total_amount
+          data_type: decimal
+          description: 金额合计（元）
+          required: true
+          checks:
+            - name: 金额合计两位小数
+              path: [total_amount, scale]
+              type: decimal_scale
+              scale: 2
+        - name: fund_pool
+          data_type: decimal
+          description: 医保统筹（元）
+          required: true
+        - name: supplementary
+          data_type: decimal
+          description: 补充医疗（元）
+          required: true
+        - name: medical_aid
+          data_type: decimal
+          description: 医疗救助（元）
+          required: true
+        - name: personal_burden
+          data_type: decimal
+          description: 个人负担（元）
+          required: true
+        - name: other_payment
+          data_type: decimal
+          description: 其他支付（元）
+          required: true
+        - name: personal_payment
+          data_type: decimal
+          description: 个人支付（元）
+          required: true
+        - name: settle_time
+          data_type: datetime
+          description: 结算时间
+          required: true
+        - name: settle_type
+          data_type: string
+          description: 结算方式（结算清单收费信息里的收费结算方式，非参保类型）
+          required: true
+          checks:
+            - name: 结算方式枚举
+              path: [settle_type, in_enum]
+              type: in_enum
+              # 结算清单「结算方式」填的是这笔费用怎么收的（现金/银行转账/
+              # 线上），参保身份另有字段。把职工医保、异地备案这类**参保类型**
+              # 混进来会让每一条正常结算单都报红。
+              values: [现金, 银行转账, 微信, 支付宝, 银联, 自助机]
+      checks:
+        - name: 结算号格式
+          path: [settlement_no, format]
+          type: matches_regex
+          # 结算号由医保结算清单导出，号段为本院结算单号（EX-INS-####）。
+          # 与 HIS 收费记录主键对齐时靠的就是这一列，格式漂移会让全部行
+          # 落进「渠道有 HIS 无」的单边账里。
+          pattern: 'EX-INS-\d{4}'
+        - name: 结算单笔数不为零
+          path: [rows, row_count]
+          type: row_count
+          min: 1
+
+# dataset 级对账口径：勾稽等式是医保对账的硬约束
+checks:
+  - name: 勾稽等式一：金额合计 = 医保统筹 + 补充医疗 + 医疗救助 + 个人负担
+    path: [rows, total_amount, equation]
+    type: column_equality
+    left: total_amount
+    right: [fund_pool, supplementary, medical_aid, personal_burden]
+    aggregate: sum
+    tolerance: "0.01"
+  - name: 勾稽等式二：个人负担 = 其他支付 + 个人支付
+    path: [rows, personal_burden, equation]
+    type: column_equality
+    left: personal_burden
+    right: [other_payment, personal_payment]
+    aggregate: sum
+    tolerance: "0.01"
+  - name: 金额合计与 HIS 对照
+    path: [rows, total_amount_sum, compare_his]
+    type: decimal_sum
+    column: total_amount
+    tolerance: "0.01"
+  - name: 金额合计须为正
+    path: [rows, total_amount, positive]
+    type: between
+    column: total_amount
+    min: 0
+    inclusive: false
+  - name: 跨日切分：结算时间须落在账期窗口内
+    path: [rows, settle_time, in_period]
+    type: cross_period
+    column: settle_time
+    period_variable: period
+    timezone_variable: session_timezone

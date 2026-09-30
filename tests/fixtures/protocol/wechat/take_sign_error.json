@@ -1,0 +1,6 @@
+{
+  "_comment": "签名/鉴权错误：HTTP 401，渠道只回笼统的 SIGN_ERROR，不告诉你缺了 serial_no 还是私钥不匹配。这正是本产品坚持「缺位前置校验、一次列全」的原因——靠渠道报错只能拿到一句没有指向性的话。",
+  "_http_status": 401,
+  "code": "SIGN_ERROR",
+  "message": "签名错误"
+}

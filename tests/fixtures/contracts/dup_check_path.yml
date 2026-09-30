@@ -1,0 +1,48 @@
+# 坏契约 2：同一 check path 重复定义
+# 两条 decimal_sum 都挂在 rows.refund_sum 上，逐 check 出证据时会重复出现
+name: 重复 path 坏契约
+version: "0.1"
+channel: broken_dup
+
+variables:
+  period: "2026-W36"
+
+dataset:
+  name: 重复 path 账单表
+  tables:
+    - name: broken_bill
+      location: inbox/${period}/broken_dup/
+      columns:
+        - name: out_trade_no
+          data_type: string
+          required: true
+          checks:
+            - name: 订单号必填
+              path: [out_trade_no, not_empty]
+              type: not_empty
+        - name: amount
+          data_type: decimal
+          required: true
+          checks:
+            - name: 金额两位小数
+              path: [amount, scale]
+              type: decimal_scale
+              scale: 2
+        - name: refund
+          data_type: decimal
+          required: false
+      checks:
+        - name: 笔数不为零
+          path: [rows, row_count]
+          type: row_count
+          min: 1
+
+checks:
+  - name: 退款金额合计
+    path: [rows, refund_sum]
+    type: decimal_sum
+    column: refund
+  - name: 退款金额合计（重复定义）
+    path: [rows, refund_sum]
+    type: decimal_sum
+    column: refund

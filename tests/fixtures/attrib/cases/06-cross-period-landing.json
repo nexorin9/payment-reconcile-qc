@@ -1,0 +1,239 @@
+{
+  "bundle": {
+    "bundle_version": "evidence-bundle/1",
+    "candidate_cap": 5,
+    "candidate_rank_basis": "score",
+    "candidate_rows": [
+      {
+        "amount": "150.00",
+        "cross_period": true,
+        "department": "门诊收费室",
+        "factors": [
+          {
+            "available": true,
+            "contribution": "0.45",
+            "detail": "金额完全相等",
+            "factor": "amount",
+            "factor_zh": "金额差",
+            "value": "1",
+            "weight": "0.45"
+          },
+          {
+            "available": true,
+            "contribution": "0.25",
+            "detail": "交易时间同分钟",
+            "factor": "time",
+            "factor_zh": "时间窗距离",
+            "value": "1",
+            "weight": "0.25"
+          },
+          {
+            "available": false,
+            "contribution": "0",
+            "detail": "渠道行无科室一致字段（导出侧本就没有这一列）",
+            "factor": "department",
+            "factor_zh": "科室一致",
+            "value": null,
+            "weight": "0.15"
+          },
+          {
+            "available": false,
+            "contribution": "0",
+            "detail": "渠道行无结算方式一致字段（导出侧本就没有这一列）",
+            "factor": "settle_type",
+            "factor_zh": "结算方式一致",
+            "value": null,
+            "weight": "0.15"
+          },
+          {
+            "available": false,
+            "contribution": "0",
+            "detail": "未提供跨渠道印证数据（本轮只跑单路，无法判断）",
+            "factor": "cross_channel",
+            "factor_zh": "跨渠道印证",
+            "value": null,
+            "weight": "0.10"
+          }
+        ],
+        "hints": [],
+        "his_order_no": "EX-CROSS-0006",
+        "is_refund": false,
+        "net_amount": "150.00",
+        "order_no": "EX-CROSS-0006",
+        "period": "2026-W36",
+        "record_id": "EX-CROSS-0006",
+        "ref": "charge_record.csv:51",
+        "refund": null,
+        "score": "1.0000",
+        "score_source": "scoring.score_pair",
+        "settle_type": "微信",
+        "side": "his",
+        "source_file": "charge_record.csv",
+        "source_row_no": 51,
+        "tier": "strong",
+        "tier_zh": "强候选",
+        "trade_time": "2026-09-07T00:00:00+08:00",
+        "trade_type": ""
+      }
+    ],
+    "candidate_shown": 1,
+    "candidate_source": "align.candidates",
+    "candidate_total": 1,
+    "candidate_truncated": false,
+    "channel": "alipay",
+    "channel_contract_slice": {
+      "available": true,
+      "check_shown": 6,
+      "check_total": 11,
+      "checks": [
+        {
+          "check_name": "金额两位小数",
+          "check_path": "amount.scale",
+          "column": "amount",
+          "operator": "decimal_scale",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 amount 上"
+        },
+        {
+          "check_name": "收支方向枚举",
+          "check_path": "income_expense.in_enum",
+          "column": "income_expense",
+          "operator": "in_enum",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 income_expense 上"
+        },
+        {
+          "check_name": "收入金额合计与 HIS 对照",
+          "check_path": "rows.amount_sum.compare_his",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "支出（退款）金额单列",
+          "check_path": "rows.expense_sum",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "跨日切分：交易时间须落在账期窗口内",
+          "check_path": "rows.trade_time.in_period",
+          "column": "",
+          "operator": "cross_period",
+          "relevance": "直接相关",
+          "why": "表级口径 cross_period 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "退费红冲：支出行须与同单号收入行成对",
+          "check_path": "rows.refund.offset",
+          "column": "",
+          "operator": "refund_offset",
+          "relevance": "直接相关",
+          "why": "表级口径 refund_offset 的判据直接对应本差异形态"
+        }
+      ],
+      "contract_name": "支付宝账单对账契约",
+      "contract_version": "1.0",
+      "reason": "",
+      "truncated": false
+    },
+    "channel_meta": {
+      "bill_type": "alipay.data.dataservice.bill.downloadurl.query",
+      "bill_type_source": "channel_default",
+      "channel": "alipay",
+      "channel_zh": "支付宝",
+      "evidence_slice_sha256": "35128dc32659a6d3fd21cb18c995178b084e5a49e3ef76c46c8284847e2badeb",
+      "source_file_count": 2,
+      "source_files": [
+        "alipay_bill.csv",
+        "charge_record.csv"
+      ]
+    },
+    "conclusion_key": "alipay:2026-W36:ex-cross-0006",
+    "diff_row": {
+      "amount": "150.00",
+      "cross_period": true,
+      "department": "",
+      "his_order_no": "",
+      "is_refund": false,
+      "net_amount": "150.00",
+      "order_no": "EX-CROSS-0006",
+      "period": "2026-W36",
+      "record_id": "EX-CROSS-0006",
+      "ref": "alipay_bill.csv:11",
+      "refund": null,
+      "settle_type": "",
+      "side": "channel",
+      "source_file": "alipay_bill.csv",
+      "source_row_no": 11,
+      "trade_time": "2026-09-07T00:00:00+08:00",
+      "trade_type": ""
+    },
+    "diff_side": "channel",
+    "discrepancy": {
+      "detail": "跨账期落点：EX-CROSS-0006 命中 1 条候选，未归并",
+      "diff_amount": "",
+      "kind": "cross_period",
+      "kind_zh": "跨账期落点待确认",
+      "needs_attribution": true
+    },
+    "history": {
+      "available": false,
+      "channel": "alipay",
+      "kind": "cross_period",
+      "periods": [
+        "2026-W32",
+        "2026-W33",
+        "2026-W34",
+        "2026-W35"
+      ],
+      "reasons": [
+        "未提供账单库连接：查不到历史处置结论（不等于没有先例）"
+      ],
+      "same_cause": {
+        "by_disposition": {},
+        "by_period": {},
+        "total": 0
+      },
+      "same_order_no": {
+        "available": false,
+        "by_period": {},
+        "occurrences": 0,
+        "reasons": [
+          "未提供账单库连接"
+        ]
+      },
+      "window_periods": 4
+    },
+    "period": "2026-W36",
+    "period_window": {
+      "available": true,
+      "end": "2026-09-07T00:00:00+08:00",
+      "half_open": true,
+      "period": "2026-W36",
+      "reason": "",
+      "start": "2026-08-31T00:00:00+08:00",
+      "tz": "Asia/Shanghai"
+    },
+    "same_order_no_rows": [],
+    "scoring_config_fingerprint": "d5ab8e742a1392f6b4dc863cd55a09154b327fbbefff188e667b2c03951a2c55"
+  },
+  "case_id": "06-cross-period-landing",
+  "channel": "alipay",
+  "expect": {
+    "cause_codes": [
+      "period_boundary_landing",
+      "cross_period_duplicate",
+      "channel_late_posting"
+    ],
+    "min_refs": 1,
+    "required_refs": [
+      "alipay_bill.csv:11"
+    ]
+  },
+  "kind": "cross_period",
+  "name_zh": "跨账期：HIS 唯一命中行落在账期窗口之外"
+}

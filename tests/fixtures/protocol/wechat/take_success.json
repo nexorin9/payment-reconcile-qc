@@ -1,0 +1,7 @@
+{
+  "_comment": "微信支付 APIv3 GET /v3/bill/tradebill 成功响应。字段名按官方规范；hash/download_url 为占位，真实取件时由渠道下发。随测试回放，非任何真实商户数据。",
+  "_http_status": 200,
+  "hash_type": "SHA1",
+  "hash": "0000000000000000000000000000000000000000",
+  "download_url": "https://api.mch.weixin.qq.com/v3/bill/download/EXAM_WECHAT_TOKEN_PLACEHOLDER?token=EXAM"
+}

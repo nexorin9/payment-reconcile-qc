@@ -1,0 +1,100 @@
+# 自助机账单对账契约
+# 维护人：财务科对账岗（口径）+ 信息科接口岗（文件通道）
+# 自助机是院内单边账的高发渠道：终端离线、跨日切分、红冲滞后都集中在这里
+name: 自助机账单对账契约
+version: "1.0"
+channel: self_service
+description: 院内自助机（缴费/打印）账单对账口径（本轮为院内文件通道，非最终对接方式）
+
+variables:
+  period: "2026-W36"
+  session_timezone: "Asia/Shanghai"
+
+dataset:
+  name: 自助机账单
+  tables:
+    - name: self_service_bill
+      location: inbox/${period}/self_service/
+      description: 自助机导出的缴费明细（终端号 + 订单号 + 金额 + 时间）
+      columns:
+        - name: out_trade_no
+          data_type: string
+          description: 自助机订单号（对应 HIS 收费记录主键）
+          required: true
+          checks:
+            - name: 订单号唯一
+              path: [out_trade_no, unique]
+              type: unique
+            - name: 收费记录号格式
+              path: [out_trade_no, format]
+              type: matches_regex
+              # 自助机导出的收费记录号须与 HIS 收费记录主键同号段（EX-HIS-####）。
+              # 号段对不上说明这份导出不是本院 HIS 的账，拿它跟渠道对账只会
+              # 满屏对不上，却查不出是导出侧的问题。
+              pattern: 'EX-HIS-\d{4}'
+        - name: terminal_no
+          data_type: string
+          description: 自助机终端号
+          required: true
+        - name: amount
+          data_type: decimal
+          description: 缴费金额（元）
+          required: true
+          checks:
+            - name: 金额两位小数
+              path: [amount, scale]
+              type: decimal_scale
+              scale: 2
+            - name: 金额区间
+              path: [amount, between]
+              type: between
+              min: 0
+              max: 1000000
+        - name: pay_time
+          data_type: datetime
+          description: 支付时间（终端本地时间，离线终端可能滞后）
+          required: true
+        - name: settle_type
+          data_type: string
+          description: 结算方式
+          required: true
+          checks:
+            - name: 结算方式枚举
+              path: [settle_type, in_enum]
+              type: in_enum
+              values: [微信, 支付宝, 银联, 自助机, 医保, 现金, 银行卡, 银行转账]
+        - name: is_refund
+          data_type: boolean
+          description: 是否红冲退费
+          required: false
+      checks:
+        - name: 账单笔数不为零
+          path: [rows, row_count]
+          type: row_count
+          min: 1
+
+# dataset 级对账口径
+checks:
+  - name: 缴费金额合计与 HIS 对照
+    path: [rows, amount_sum, compare_his]
+    type: decimal_sum
+    column: amount
+    exclude_where: {is_refund: true}
+    tolerance: "0.01"
+  - name: 红冲退费金额单列
+    path: [rows, refund_sum]
+    type: decimal_sum
+    column: amount
+    where: {is_refund: true}
+  - name: 跨日切分：支付时间须落在账期窗口内
+    path: [rows, pay_time, in_period]
+    type: cross_period
+    column: pay_time
+    period_variable: period
+    timezone_variable: session_timezone
+  - name: 退费红冲：红冲行须与同单号正向缴费行成对
+    path: [rows, is_refund, offset]
+    type: refund_offset
+    column: amount
+    where: {is_refund: true}
+    pair_column: out_trade_no

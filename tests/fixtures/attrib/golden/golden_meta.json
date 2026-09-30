@@ -1,0 +1,55 @@
+{
+  "annotated_at": "2026-09-30",
+  "annotated_by": "财务科对账岗（业务口径）+ 信息科接口岗（字段口径）",
+  "behaviour_caliber_zh": {
+    "correct": "Top-1 即期望成因",
+    "correct_at_2": "Top-1 说了个说得通但不对的成因，期望成因排在第 2/3 位",
+    "hallucinate": "期望 UNKNOWN，模型硬猜一个具体成因（反幻觉失败）",
+    "miss": "三条全不在期望集合内",
+    "refuse": "期望 UNKNOWN，模型答 undetermined（正确拒答）"
+  },
+  "behaviours": {
+    "correct": 30,
+    "correct_at_2": 10,
+    "hallucinate": 1,
+    "miss": 2,
+    "refuse": 5
+  },
+  "caliber_notes": [
+    "期望写成**成因码集合**而不是单值：一条单边账的真实成因常有两个都说得通，判据是归因落在受控字典的哪一桶，而不是逐字等于哪一个成因短语。",
+    "UNIQUE 判定只看 Top-1 是否为 undetermined：模型在别处也提了 undetermined 但 Top-1 给了具体成因，仍算反幻觉失败 —— 经办人看的是排序第一条。",
+    "证据包逐字节固定（bundle_from_payload 重渲染，无时间戳与序号），同一份样本任何时候重建都得到同一个 digest。",
+    "单号统一用 EX- 前缀占位，科室只用四个通用称呼，全表不含患者姓名、身份证号、手机号、住院号等可识别明细。"
+  ],
+  "cause_vocabulary_source": "reconq.align.causes.CAUSES（受控成因字典，10 条）",
+  "channels": {
+    "alipay": 11,
+    "medical_ins": 7,
+    "self_service": 9,
+    "unionpay": 9,
+    "wechat": 12
+  },
+  "known_limits": [
+    "样本全部来自单账期 2026-W36 的构造数据，不代表真实六路账单的形态分布；命中率不能外推到别的账期。",
+    "标注由本产品作者完成，不是第三方盲标 —— 存在「按自己实现的判据标注」这一层循环。缓解办法是期望只写受控字典的桶、不写实现细节，但这不能完全消除。",
+    "模型档数字来自录制响应替身，**不代表任何真实端点的判别能力**。"
+  ],
+  "layers": {
+    "ambiguous_merged": 5,
+    "ambiguous_refund": 5,
+    "ambiguous_split": 5,
+    "channel_only": 5,
+    "cross_period": 6,
+    "duplicate_claim": 3,
+    "mismatch": 5,
+    "semantic_override": 5,
+    "unknown_exhausted": 3,
+    "unknown_missing_column": 2,
+    "unknown_reused": 1,
+    "weak_pending": 3
+  },
+  "period": "2026-W36",
+  "schema": "attrib-eval-meta/1",
+  "total": 48,
+  "unknown_total": 6
+}

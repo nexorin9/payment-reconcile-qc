@@ -1,0 +1,80 @@
+# 好契约：静态校验零 ERROR
+# 覆盖度也补齐了（必填列有 not_empty、金额列有 decimal_scale），
+# 因此连 WARN 都没有 —— 这是「新写一份契约」应该照着抄的样板
+name: 静态校验好契约
+version: "1.0"
+channel: good_sample
+description: 静态校验测试用好契约：零 ERROR、零 WARN
+
+variables:
+  period: "2026-W36"
+  session_timezone: "Asia/Shanghai"
+
+dataset:
+  name: 好契约账单表
+  tables:
+    - name: good_bill
+      location: inbox/${period}/good_sample/
+      columns:
+        - name: out_trade_no
+          data_type: string
+          description: 商户订单号
+          required: true
+          checks:
+            - name: 订单号必填
+              path: [out_trade_no, not_empty]
+              type: not_empty
+            - name: 订单号唯一
+              path: [out_trade_no, unique]
+              type: unique
+        - name: trade_state
+          data_type: string
+          description: 交易状态
+          required: true
+          checks:
+            - name: 交易状态必填
+              path: [trade_state, not_empty]
+              type: not_empty
+            - name: 交易状态枚举
+              path: [trade_state, in_enum]
+              type: in_enum
+              values: [SUCCESS, REFUND, CLOSED, NOTPAY]
+        - name: amount
+          data_type: decimal
+          description: 订单金额（元）
+          required: true
+          checks:
+            - name: 金额必填
+              path: [amount, not_empty]
+              type: not_empty
+            - name: 金额两位小数
+              path: [amount, scale]
+              type: decimal_scale
+              scale: 2
+        - name: success_time
+          data_type: datetime
+          description: 支付成功时间
+          required: true
+          checks:
+            - name: 交易时间必填
+              path: [success_time, not_empty]
+              type: not_empty
+            - name: 交易时间落在账期内
+              path: [success_time, in_period]
+              type: cross_period
+              column: success_time
+              period_variable: period
+              timezone_variable: session_timezone
+      checks:
+        - name: 账单笔数不为零
+          path: [rows, row_count]
+          type: row_count
+          min: 1
+
+checks:
+  - name: 成功交易金额合计与 HIS 对照
+    path: [rows, amount_sum, compare_his]
+    type: decimal_sum
+    column: amount
+    where: {trade_state: SUCCESS}
+    tolerance: "0.01"

@@ -1,0 +1,133 @@
+# 微信支付账单对账契约
+# 维护人：财务科对账岗（口径）+ 信息科接口岗（取数与字段）
+# 用法：reconq verify --period 2026-W36 --contract contracts/wechat.yml
+name: 微信支付账单对账契约
+version: "1.0"
+channel: wechat
+description: 微信支付商户账单（bill_type=ALL）的对账口径
+
+variables:
+  period: "2026-W36"
+  session_timezone: "Asia/Shanghai"
+
+dataset:
+  name: 微信支付账单
+  tables:
+    - name: wechat_tradebill
+      location: inbox/${period}/wechat/
+      description: 微信支付账单文件（脱敏样例为本地文件通道，非最终对接方式）
+      columns:
+        - name: transaction_id
+          data_type: string
+          description: 微信交易单号
+          required: true
+          checks:
+            - name: 交易单号必填
+              path: [transaction_id, not_empty]
+              type: not_empty
+            - name: 交易单号唯一
+              path: [transaction_id, unique]
+              type: unique
+            - name: 交易单号格式
+              path: [transaction_id, format]
+              type: matches_regex
+              # 微信交易单号由渠道生成，格式稳定（EX-WXTXN-<账期>-<序号>）。
+              # 渠道换导出版本时格式会变（如多一段前缀），这时后续单号对齐与
+              # 唯一性判定全部失准，而现场只剩一句含糊的「对不上」——
+              # 把格式钉在契约里，导出方一改就能立刻定位到是哪一路。
+              pattern: 'EX-WXTXN-\d{4}W\d{2}-\d{4}'
+        - name: out_trade_no
+          data_type: string
+          description: 商户订单号（对应 HIS 收费记录主键）
+          required: true
+          checks:
+            - name: 商户订单号必填
+              path: [out_trade_no, not_empty]
+              type: not_empty
+        - name: trade_state
+          data_type: string
+          description: 交易状态
+          required: true
+          checks:
+            - name: 交易状态枚举
+              path: [trade_state, in_enum]
+              type: in_enum
+              values: [SUCCESS, REFUND, CLOSED, NOTPAY]
+        - name: amount
+          data_type: decimal
+          description: 订单金额（元）
+          required: true
+          checks:
+            - name: 金额两位小数
+              path: [amount, scale]
+              type: decimal_scale
+              scale: 2
+            - name: 金额非负
+              path: [amount, min]
+              type: between
+              min: 0
+        - name: success_time
+          data_type: datetime
+          description: 支付成功时间（渠道本地时间）
+          required: true
+        - name: refund
+          data_type: decimal
+          description: 退款金额（元），0 表示无退款
+          required: false
+        - name: payer
+          data_type: string
+          description: 付款方（脱敏样例中为占位，不落患者可识别明细）
+          required: false
+      checks:
+        - name: 商户订单号与微信交易单号不得同值
+          path: [transaction_id, distinct_from, out_trade_no]
+          type: column_not_equal
+          other: out_trade_no
+          # 院方要求账单同时带「商户订单号」与「微信交易单号」两列以便与
+          # HIS 收费记录交叉核对。某行两列取值相同时，多半是导出脚本把同一列
+          # 写了两遍：看着「双写齐全」，实际交叉核对能力为零，而合计照样对得上。
+        - name: 账单笔数不为零
+          path: [rows, row_count]
+          type: row_count
+          min: 1
+        - name: 成功交易笔数不为零
+          path: [rows, success_count]
+          type: row_count
+          where: {trade_state: SUCCESS}
+          min: 1
+
+# dataset 级对账口径（挂在契约根下，作用于整张账单表）
+checks:
+  - name: 订单金额合计与 HIS 对照
+    path: [rows, amount_sum, compare_his]
+    type: decimal_sum
+    column: amount
+    where: {trade_state: SUCCESS}
+    tolerance: "0.01"
+  - name: 退款金额合计单列
+    path: [rows, refund_sum]
+    type: decimal_sum
+    column: refund
+  - name: 本期退款金额须为零（出现退费须财务科逐笔确认）
+    path: [rows, refund_sum, zero]
+    type: decimal_sum
+    column: refund
+    expected: "0.00"
+    tolerance: "0.00"
+  - name: 跨日切分：交易时间须落在账期窗口内
+    path: [rows, success_time, in_period]
+    type: cross_period
+    column: success_time
+    period_variable: period
+    timezone_variable: session_timezone
+  - name: 退费红冲：退款额须挂得住原单且不超过原单金额
+    path: [rows, refund, offset]
+    type: refund_offset
+    # 微信账单把退款金额记在**原单行**的「退款金额」列上（一行同时有订单
+    # 金额与退款金额），不是另起一行。因此本条是「行内退费」形态：配对
+    # 对象是本行自身的订单金额列，而不是同号的另一行。
+    column: refund
+    pair_column: out_trade_no
+    order_amount_column: amount
+    # 未支付 / 已关闭的单不存在退款；这些状态上出现退款金额一定是账错了
+    dead_states: [NOTPAY, CLOSED, REVOKED]

@@ -1,0 +1,584 @@
+# 对齐黄金样例回归集（reconq align-golden 的唯一真源）
+#
+# 这份文件与 tests/fixtures/align/golden.jsonl（Task 38 的指标金标集）**分工不同**，
+# 不要合并：
+#   * golden.jsonl 回答「本产品比基础方案准不准」——条数越多指标越可信，衡量的是
+#     召回 / 误报 / 形态命中率；
+#   * cases.yml 回答「改了这版代码，有没有把原来对的东西改坏」——它按**形态**
+#     组织（每种形态必须留够样本），并对每条 case 钉死**证据行号**。
+#     指标集里一条 matched case 错了只掉 1% 召回；这里一条四形态 case 错了，
+#     现场就是「一类差异整体判错方向」。
+#
+# 登记规范（新增边界形态必须先改这里，再改代码）
+# ----------------------------------------------------
+# 发现一个新的边界形态时，**先**在 cases.yml 里加 case（哪怕先把 expect 写成
+# 现状、标 note 说明它是错的），跑一次 align-golden 让它红，再改
+# src/reconq/align/matcher.py / ambiguity.py 让它绿。顺序反过来就会出现
+# 「代码已经按新形态写了、例子里却一条都没有」——那种改动下次重构就被无声抹掉。
+# form 标签是受控词表（reconq.align.cases.CASE_FORMS），写错会在加载期报
+# ALIGN_CASE_FORM_UNKNOWN 并列出全部合法标签，不会被当成新形态静默接受。
+#
+# 脱敏口径
+# --------
+# 单号一律 AC-/ACS-/ACP-/ACR-/ACK-/ACD- 前缀占位，与 2026-W36 样例账单
+# （EX-*、WXTXN-*）无交集；金额为占位金额，两位小数，不映射任何真实收费项目；
+# 科室只取门诊收费室 / 住院收费室 / 急诊收费室三个通用称呼；**不含任何患者
+# 可识别明细**。
+#
+# 字段说明
+# --------
+#   case_id        唯一标识，报告与失败信息按它定位
+#   form           形态标签（受控词表，见文件末尾 form_counts 说明）
+#   channel        该 case 跑在哪一路渠道上
+#   focus_index    取哪一行渠道行的结论去比对（默认最后一行）
+#   expect.status  期望的 MatchStatus（见 reconq.align.matcher.MatchStatus）
+#   expect.kind    期望的歧义分类（reconq.align.ambiguity.AmbiguityKind，
+#                  非歧义结论写 ""）
+#   expect.taxonomy_kind
+#                  期望的成因分类（reconq.align.taxonomy.AmbiguityKind）。
+#                  **只对四种歧义形态必填** —— 其余形态不写（分类层对它们
+#                  本来就不判成因）。
+#   expect.evidence_rows
+#                  期望出现在结论里的证据行号集合（排序去重后比对）
+#   expect.diff_amount  期望差额（仅 status=mismatch 时填）
+#   expect.his_only_rows
+#                  期望的「HIS 有渠道无」行号集合
+
+set_version: align-cases-v1
+period: 2026-W36
+meta:
+  annotated_source: >-
+    本轮（round_089）由项目侧人工逐条标注：每条 case 的期望结论按
+    reconq.align.matcher 的判定顺序与 reconq.align.ambiguity /
+    reconq.align.taxonomy 的判据硬边界逐条推演写出，并按 2026-W36 账期窗口
+    （2026-08-31 00:00 → 2026-09-07 00:00，Asia/Shanghai，半开）核对时刻落点。
+  annotated_at: "2026-09-30"
+  annotator_role: 财务科对账岗（业务口径） + 信息科接口岗（取数与账期口径）联合标注
+  amounts: 全部为脱敏占位金额，人民币元两位小数，不映射到任何真实收费项目
+  order_nos: 全部为 AC- 前缀占位单号，与 2026-W36 样例账单（EX-*/WXTXN-*）无交集
+  boundary_notes:
+    - "账期窗口半开 [08-31 00:00, 09-07 00:00)：恰好落在 09-07 00:00:00 的记录属下一期（ACP-05X），恰好落在 08-31 00:00:00 的记录属本期（ACP-06X）。"
+    - "ACP-03X / ACP-04X 两组候选全部越界：ACP-03X 金额不同仍先判跨账期，ACP-04X 金额相同也**不**先判金额相同 —— 跨账期判据比金额硬。"
+    - "ACR-03 与 ACR-06 是一对镜像：前者的原单在**渠道侧**（43.00 非退费行）故判退费并存，后者的渠道行本身也是退费行、根本没有原单，故**不**判并存。「并存」看的是全部参与判别的行，只看 HIS 侧会把两者判成同一种。"
+    - "ACK-07 唯一候选已被前一行的精确匹配认领：弱匹配**不退回全集**，否则第二行会把别人认领过的记录再弱匹配一次，看着两行都有候选、实则重复计入。"
+    - "ACK-08 两行渠道款弱匹配到同一条 HIS 收费：弱匹配从不认领，两行都报待人工，结论是「这一条没对上」而不是「候选冲突」。"
+    - "ACD-04 同一单号两条完全相同的 HIS 记录：判 equal_amount（信息耗尽），不是 refund_coexist 也不是 split。"
+
+cases:
+  # ═══════════════ 一、single（10 条）：一对一或明确单边 ═══════════════
+  - case_id: ACS-01
+    form: single
+    channel: wechat
+    note: 单号精确命中唯一一条 HIS 记录且金额一致 —— 干净对齐
+    channel_rows:
+      - {order_no: ACS-01, amount: "128.00", trade_time: "2026-09-02T10:05:00+08:00", trade_type: SUCCESS, source_row_no: 2}
+    his_rows:
+      - {order_no: ACS-01, amount: "128.00", trade_time: "2026-09-02T10:06:00+08:00", ch_id: 910101, department: 门诊收费室, settle_type: 微信, source_row_no: 11}
+    expect: {status: matched, kind: "", evidence_rows: [11], his_only_rows: []}
+
+  - case_id: ACS-02
+    form: single
+    channel: alipay
+    note: 对上了但对不平 —— 差额必须报出来，这是比「对不上」更需要解释的一类
+    channel_rows:
+      - {order_no: ACS-02, amount: "128.00", trade_time: "2026-09-02T11:05:00+08:00", trade_type: SUCCESS, source_row_no: 3}
+    his_rows:
+      - {order_no: ACS-02, amount: "100.00", trade_time: "2026-09-02T11:06:00+08:00", ch_id: 910102, department: 门诊收费室, settle_type: 支付宝, source_row_no: 12}
+    expect: {status: mismatch, kind: "", evidence_rows: [12], diff_amount: "28.00", his_only_rows: []}
+
+  - case_id: ACS-03
+    form: single
+    channel: unionpay
+    note: 渠道有 HIS 无；同一条 HIS 记录反过来也要报（HIS 有渠道无）
+    channel_rows:
+      - {order_no: ACS-03, amount: "66.00", trade_time: "2026-09-02T12:05:00+08:00", source_row_no: 4}
+    his_rows:
+      - {order_no: ACS-98, amount: "45.00", trade_time: "2026-09-02T12:06:00+08:00", ch_id: 910103, department: 急诊收费室, settle_type: 现金, source_row_no: 13}
+    expect: {status: channel_only, kind: "", evidence_rows: [], his_only_rows: [13]}
+
+  - case_id: ACS-04
+    form: single
+    channel: self_service
+    note: 焦点行已对齐，但另有一条 HIS 收费无人认领 —— 反向单边账挂在 AlignAllResult 层
+    channel_rows:
+      - {order_no: ACS-04, amount: "88.00", trade_time: "2026-09-03T09:00:00+08:00", source_row_no: 5}
+    his_rows:
+      - {order_no: ACS-04, amount: "88.00", trade_time: "2026-09-03T09:01:00+08:00", ch_id: 910104, department: 门诊收费室, settle_type: 自助机, source_row_no: 14}
+      - {order_no: ACS-04B, amount: "66.00", trade_time: "2026-09-03T09:05:00+08:00", ch_id: 910105, department: 门诊收费室, settle_type: 现金, source_row_no: 15}
+    expect: {status: matched, kind: "", evidence_rows: [14], his_only_rows: [15]}
+
+  - case_id: ACS-05
+    form: single
+    channel: wechat
+    note: 渠道行内退费：退款额是正数，净收款 = 订单金额 − 退款额，与 HIS 侧净额对上
+    channel_rows:
+      - {order_no: ACS-05, amount: "128.00", refund: "86.00", trade_time: "2026-09-03T10:00:00+08:00", trade_type: REFUND, source_row_no: 6}
+    his_rows:
+      - {order_no: ACS-05, amount: "42.00", trade_time: "2026-09-03T10:02:00+08:00", ch_id: 910106, department: 门诊收费室, settle_type: 微信, source_row_no: 16}
+    expect: {status: matched, kind: "", evidence_rows: [16], his_only_rows: []}
+
+  - case_id: ACS-06
+    form: single
+    channel: wechat
+    note: 同一笔被两行同号渠道行各报一次：只认领一次，第二行报重复认领而不是二次认领
+    focus_index: 1
+    channel_rows:
+      - {order_no: ACS-06, amount: "128.00", trade_time: "2026-09-03T11:00:00+08:00", source_row_no: 7}
+      - {order_no: ACS-06, amount: "128.00", trade_time: "2026-09-03T11:00:30+08:00", source_row_no: 8}
+    his_rows:
+      - {order_no: ACS-06, amount: "128.00", trade_time: "2026-09-03T11:01:00+08:00", ch_id: 910107, department: 门诊收费室, settle_type: 微信, source_row_no: 17}
+    expect: {status: duplicate_claim, kind: duplicate_claim, evidence_rows: [17], his_only_rows: []}
+
+  - case_id: ACS-07
+    form: single
+    channel: alipay
+    note: 渠道行自带 his_order_no（院内导出填了）：按 HIS 单号对齐，渠道侧商户订单号与 HIS 侧不同名
+    channel_rows:
+      - {order_no: ACS-07A, his_order_no: ACS-07B, amount: "128.00", trade_time: "2026-09-03T14:00:00+08:00", source_row_no: 9}
+    his_rows:
+      - {order_no: ACS-07B, his_order_no: ACS-07B, amount: "128.00", trade_time: "2026-09-03T14:02:00+08:00", ch_id: 910108, department: 门诊收费室, settle_type: 支付宝, source_row_no: 18}
+    expect: {status: matched, kind: "", evidence_rows: [18], his_only_rows: []}
+
+  - case_id: ACS-08
+    form: single
+    channel: unionpay
+    note: 容差边界：差额恰好 0.01 元按分位抹零容差判过（院内导出常有分位抹零）
+    channel_rows:
+      - {order_no: ACS-08, amount: "128.00", trade_time: "2026-09-04T09:00:00+08:00", source_row_no: 10}
+    his_rows:
+      - {order_no: ACS-08, amount: "128.01", trade_time: "2026-09-04T09:01:00+08:00", ch_id: 910109, department: 门诊收费室, settle_type: 银联, source_row_no: 19}
+    expect: {status: matched, kind: "", evidence_rows: [19], his_only_rows: []}
+
+  - case_id: ACS-09
+    form: single
+    channel: self_service
+    note: 超出容差一个分位即报金额不符 —— 容差不是无限放大的橡皮
+    channel_rows:
+      - {order_no: ACS-09, amount: "128.00", trade_time: "2026-09-04T10:00:00+08:00", source_row_no: 11}
+    his_rows:
+      - {order_no: ACS-09, amount: "128.02", trade_time: "2026-09-04T10:01:00+08:00", ch_id: 910110, department: 门诊收费室, settle_type: 自助机, source_row_no: 20}
+    expect: {status: mismatch, kind: "", evidence_rows: [20], diff_amount: "-0.02", his_only_rows: []}
+
+  - case_id: ACS-10
+    form: single
+    channel: medical_ins
+    note: 医保代收渠道的单边对齐：金额一致即已对齐，科室与结算方式不同不影响
+    channel_rows:
+      - {order_no: ACS-10, amount: "66.00", trade_time: "2026-09-04T14:00:00+08:00", source_row_no: 12}
+    his_rows:
+      - {order_no: ACS-10, amount: "66.00", trade_time: "2026-09-04T14:01:00+08:00", ch_id: 910111, department: 住院收费室, settle_type: 医保, source_row_no: 21}
+    expect: {status: matched, kind: "", evidence_rows: [21], his_only_rows: []}
+
+  # ═══════ 二、one_code_multi_settle（6 条）：一码付拆多笔，金额守恒 ═══════
+  - case_id: ACP-01
+    form: one_code_multi_settle
+    channel: wechat
+    note: 住院预交金按费用项目拆开入账：一条渠道单号 → 两条 HIS 收费，两侧金额守恒
+    channel_rows:
+      - {order_no: ACP-01, amount: "128.00", trade_time: "2026-09-02T09:00:00+08:00", source_row_no: 2}
+    his_rows:
+      - {order_no: ACP-01, amount: "66.00", trade_time: "2026-09-02T09:01:00+08:00", ch_id: 920101, department: 住院收费室, settle_type: 微信, source_row_no: 31}
+      - {order_no: ACP-01, amount: "62.00", trade_time: "2026-09-02T09:01:30+08:00", ch_id: 920102, department: 住院收费室, settle_type: 微信, source_row_no: 32}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: split_payment, evidence_rows: [31, 32], his_only_rows: []}
+
+  - case_id: ACP-02
+    form: one_code_multi_settle
+    channel: wechat
+    note: 拆成三笔，其中两笔金额相同：金额全同的那部分不改变「守恒 ⇒ 拆笔」的结论
+    channel_rows:
+      - {order_no: ACP-02, amount: "128.00", trade_time: "2026-09-02T09:30:00+08:00", source_row_no: 3}
+    his_rows:
+      - {order_no: ACP-02, amount: "40.00", trade_time: "2026-09-02T09:31:00+08:00", ch_id: 920103, department: 住院收费室, settle_type: 微信, source_row_no: 33}
+      - {order_no: ACP-02, amount: "40.00", trade_time: "2026-09-02T09:31:20+08:00", ch_id: 920104, department: 住院收费室, settle_type: 微信, source_row_no: 34}
+      - {order_no: ACP-02, amount: "48.00", trade_time: "2026-09-02T09:31:40+08:00", ch_id: 920105, department: 住院收费室, settle_type: 微信, source_row_no: 35}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: split_payment, evidence_rows: [33, 34, 35], his_only_rows: []}
+
+  - case_id: ACP-03
+    form: one_code_multi_settle
+    channel: alipay
+    note: 拆成三笔且金额全同：扇出侧全同只在**不守恒**时才判信息耗尽，守恒优先判拆笔
+    channel_rows:
+      - {order_no: ACP-03, amount: "300.00", trade_time: "2026-09-02T10:00:00+08:00", source_row_no: 4}
+    his_rows:
+      - {order_no: ACP-03, amount: "100.00", trade_time: "2026-09-02T10:01:00+08:00", ch_id: 920106, department: 住院收费室, settle_type: 支付宝, source_row_no: 36}
+      - {order_no: ACP-03, amount: "100.00", trade_time: "2026-09-02T10:01:20+08:00", ch_id: 920107, department: 住院收费室, settle_type: 支付宝, source_row_no: 37}
+      - {order_no: ACP-03, amount: "100.00", trade_time: "2026-09-02T10:01:40+08:00", ch_id: 920108, department: 住院收费室, settle_type: 支付宝, source_row_no: 38}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: split_payment, evidence_rows: [36, 37, 38], his_only_rows: []}
+
+  - case_id: ACP-04
+    form: one_code_multi_settle
+    channel: unionpay
+    note: 拆成四笔，跨度一天：跨日切分不影响对齐结论（两侧都在账期窗内）
+    channel_rows:
+      - {order_no: ACP-04, amount: "128.00", trade_time: "2026-09-02T11:00:00+08:00", source_row_no: 5}
+    his_rows:
+      - {order_no: ACP-04, amount: "32.00", trade_time: "2026-09-02T11:01:00+08:00", ch_id: 920109, department: 住院收费室, settle_type: 银联, source_row_no: 39}
+      - {order_no: ACP-04, amount: "32.00", trade_time: "2026-09-02T13:01:00+08:00", ch_id: 920110, department: 住院收费室, settle_type: 银联, source_row_no: 40}
+      - {order_no: ACP-04, amount: "32.00", trade_time: "2026-09-03T09:01:00+08:00", ch_id: 920111, department: 住院收费室, settle_type: 银联, source_row_no: 41}
+      - {order_no: ACP-04, amount: "32.00", trade_time: "2026-09-03T15:01:00+08:00", ch_id: 920112, department: 住院收费室, settle_type: 银联, source_row_no: 42}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: split_payment, evidence_rows: [39, 40, 41, 42], his_only_rows: []}
+
+  - case_id: ACP-05
+    form: one_code_multi_settle
+    channel: self_service
+    note: 拆成两笔金额悬殊：家属一次缴两个不同项目，守恒仍是拆笔的唯一硬判据
+    channel_rows:
+      - {order_no: ACP-05, amount: "500.00", trade_time: "2026-09-03T08:00:00+08:00", source_row_no: 6}
+    his_rows:
+      - {order_no: ACP-05, amount: "128.00", trade_time: "2026-09-03T08:01:00+08:00", ch_id: 920113, department: 住院收费室, settle_type: 自助机, source_row_no: 43}
+      - {order_no: ACP-05, amount: "200.00", trade_time: "2026-09-03T08:02:00+08:00", ch_id: 920114, department: 住院收费室, settle_type: 自助机, source_row_no: 44}
+      - {order_no: ACP-05, amount: "172.00", trade_time: "2026-09-03T08:03:00+08:00", ch_id: 920115, department: 住院收费室, settle_type: 自助机, source_row_no: 45}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: split_payment, evidence_rows: [43, 44, 45], his_only_rows: []}
+
+  - case_id: ACP-06
+    form: one_code_multi_settle
+    channel: medical_ins
+    note: 医保代收侧的一码付拆笔：结算号一条对三条基金支付明细，合计守恒
+    channel_rows:
+      - {order_no: ACP-06, amount: "200.00", trade_time: "2026-09-04T09:00:00+08:00", source_row_no: 7}
+    his_rows:
+      - {order_no: ACP-06, amount: "80.00", trade_time: "2026-09-04T09:01:00+08:00", ch_id: 920116, department: 住院收费室, settle_type: 医保, source_row_no: 46}
+      - {order_no: ACP-06, amount: "120.00", trade_time: "2026-09-04T09:02:00+08:00", ch_id: 920117, department: 住院收费室, settle_type: 医保, source_row_no: 47}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: split_payment, evidence_rows: [46, 47], his_only_rows: []}
+
+  # ═══════════ 三、merged（5 条）：多对一扇出且金额不守恒 ═══════════
+  - case_id: ACM-01
+    form: merged
+    channel: wechat
+    note: 家属一次刷卡付了多个单：渠道侧一笔 128.00，HIS 侧两条合计 156.00，不守恒
+    channel_rows:
+      - {order_no: ACM-01, amount: "128.00", trade_time: "2026-09-02T09:00:00+08:00", source_row_no: 2}
+    his_rows:
+      - {order_no: ACM-01, amount: "66.00", trade_time: "2026-09-02T09:01:00+08:00", ch_id: 930101, department: 门诊收费室, settle_type: 微信, source_row_no: 51}
+      - {order_no: ACM-01, amount: "90.00", trade_time: "2026-09-02T09:02:00+08:00", ch_id: 930102, department: 门诊收费室, settle_type: 微信, source_row_no: 52}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: merged_payment, evidence_rows: [51, 52], his_only_rows: []}
+
+  - case_id: ACM-02
+    form: merged
+    channel: wechat
+    note: 扇出三条、其中两条金额相同：金额不全相同才能排除「信息耗尽」并判合并支付
+    channel_rows:
+      - {order_no: ACM-02, amount: "200.00", trade_time: "2026-09-02T09:30:00+08:00", source_row_no: 3}
+    his_rows:
+      - {order_no: ACM-02, amount: "66.00", trade_time: "2026-09-02T09:31:00+08:00", ch_id: 930103, department: 门诊收费室, settle_type: 微信, source_row_no: 53}
+      - {order_no: ACM-02, amount: "66.00", trade_time: "2026-09-02T09:31:20+08:00", ch_id: 930104, department: 门诊收费室, settle_type: 微信, source_row_no: 54}
+      - {order_no: ACM-02, amount: "100.00", trade_time: "2026-09-02T09:31:40+08:00", ch_id: 930105, department: 门诊收费室, settle_type: 微信, source_row_no: 55}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: merged_payment, evidence_rows: [53, 54, 55], his_only_rows: []}
+
+  - case_id: ACM-03
+    form: merged
+    channel: alipay
+    note: 渠道侧金额小于 HIS 侧合计：分摊比例由谁定本身就是待查项，不猜
+    channel_rows:
+      - {order_no: ACM-03, amount: "300.00", trade_time: "2026-09-02T10:00:00+08:00", source_row_no: 4}
+    his_rows:
+      - {order_no: ACM-03, amount: "90.00", trade_time: "2026-09-02T10:01:00+08:00", ch_id: 930106, department: 门诊收费室, settle_type: 支付宝, source_row_no: 56}
+      - {order_no: ACM-03, amount: "120.00", trade_time: "2026-09-02T10:02:00+08:00", ch_id: 930107, department: 门诊收费室, settle_type: 支付宝, source_row_no: 57}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: merged_payment, evidence_rows: [56, 57], his_only_rows: []}
+
+  - case_id: ACM-04
+    form: merged
+    channel: unionpay
+    note: 扇出三条金额互不相同且严重不守恒：既不是拆笔也不是信息耗尽
+    channel_rows:
+      - {order_no: ACM-04, amount: "88.00", trade_time: "2026-09-03T09:00:00+08:00", source_row_no: 5}
+    his_rows:
+      - {order_no: ACM-04, amount: "40.00", trade_time: "2026-09-03T09:01:00+08:00", ch_id: 930108, department: 门诊收费室, settle_type: 银联, source_row_no: 58}
+      - {order_no: ACM-04, amount: "60.00", trade_time: "2026-09-03T09:02:00+08:00", ch_id: 930109, department: 门诊收费室, settle_type: 银联, source_row_no: 59}
+      - {order_no: ACM-04, amount: "30.00", trade_time: "2026-09-03T09:03:00+08:00", ch_id: 930110, department: 门诊收费室, settle_type: 银联, source_row_no: 60}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: merged_payment, evidence_rows: [58, 59, 60], his_only_rows: []}
+
+  - case_id: ACM-05
+    form: merged
+    channel: self_service
+    note: 渠道 66.00 覆盖 HIS 侧 100.00：家属只付了部分，缺口该去查谁 —— 判合并支付而非拆笔
+    channel_rows:
+      - {order_no: ACM-05, amount: "66.00", trade_time: "2026-09-03T10:00:00+08:00", source_row_no: 6}
+    his_rows:
+      - {order_no: ACM-05, amount: "20.00", trade_time: "2026-09-03T10:01:00+08:00", ch_id: 930111, department: 门诊收费室, settle_type: 自助机, source_row_no: 61}
+      - {order_no: ACM-05, amount: "80.00", trade_time: "2026-09-03T10:02:00+08:00", ch_id: 930112, department: 门诊收费室, settle_type: 自助机, source_row_no: 62}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: merged_payment, evidence_rows: [61, 62], his_only_rows: []}
+
+  - case_id: ACM-06
+    form: merged
+    channel: wechat
+    note: >-
+      **信息耗尽**（四形态里的 unknown）：扇出侧两条金额全同（66.00 / 66.00）、
+      且与渠道侧 100.00 不守恒。满足「多对一扇出」却不满足金额守恒，若无
+      「扇出侧金额不全相同」这道限制就会被判成合并支付，建议人去核对分摊规则 ——
+      而现场根本没有合并支付这回事，是导出方截断了单号。判 unknown 并写明
+      「信息耗尽」才是诚实的：**只有正例的话，「判不出来」这条能力没人验过**。
+    channel_rows:
+      - {order_no: ACM-06, amount: "100.00", trade_time: "2026-09-03T11:00:00+08:00", source_row_no: 7}
+    his_rows:
+      - {order_no: ACM-06, amount: "66.00", trade_time: "2026-09-03T11:01:00+08:00", ch_id: 930113, department: 门诊收费室, settle_type: 微信, source_row_no: 63}
+      - {order_no: ACM-06, amount: "66.00", trade_time: "2026-09-03T11:02:00+08:00", ch_id: 930114, department: 门诊收费室, settle_type: 微信, source_row_no: 64}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: unknown, evidence_rows: [63, 64], his_only_rows: []}
+
+  # ══════════ 四、cross_period（6 条）：跨账期落点与窗口边界 ══════════
+  - case_id: ACP-01X
+    form: cross_period
+    channel: wechat
+    note: 单号唯一命中，但 HIS 记录落在账期窗口之前（周一零点那一侧）
+    channel_rows:
+      - {order_no: ACP-01X, amount: "66.00", trade_time: "2026-09-02T10:00:00+08:00", source_row_no: 2}
+    his_rows:
+      - {order_no: ACP-01X, amount: "66.00", trade_time: "2026-08-30T22:00:00+08:00", ch_id: 940101, department: 门诊收费室, settle_type: 微信, source_row_no: 71}
+    expect: {status: cross_period, kind: cross_period, taxonomy_kind: cross_period, evidence_rows: [71], his_only_rows: []}
+
+  - case_id: ACP-02X
+    form: cross_period
+    channel: alipay
+    note: HIS 记录落在账期窗口之后（账单文件晚到一天）
+    channel_rows:
+      - {order_no: ACP-02X, amount: "66.00", trade_time: "2026-09-04T10:00:00+08:00", source_row_no: 3}
+    his_rows:
+      - {order_no: ACP-02X, amount: "66.00", trade_time: "2026-09-07T10:00:00+08:00", ch_id: 940102, department: 门诊收费室, settle_type: 支付宝, source_row_no: 72}
+    expect: {status: cross_period, kind: cross_period, taxonomy_kind: cross_period, evidence_rows: [72], his_only_rows: []}
+
+  - case_id: ACP-03X
+    form: cross_period
+    channel: unionpay
+    note: 两条候选全部越界且金额不同：跨账期判据比金额硬，先判跨期不判金额相同
+    channel_rows:
+      - {order_no: ACP-03X, amount: "128.00", trade_time: "2026-09-04T11:00:00+08:00", source_row_no: 4}
+    his_rows:
+      - {order_no: ACP-03X, amount: "66.00", trade_time: "2026-08-30T23:40:00+08:00", ch_id: 940103, department: 门诊收费室, settle_type: 银联, source_row_no: 73}
+      - {order_no: ACP-03X, amount: "62.00", trade_time: "2026-09-07T00:05:00+08:00", ch_id: 940104, department: 门诊收费室, settle_type: 银联, source_row_no: 74}
+    expect: {status: ambiguous, kind: cross_period, taxonomy_kind: cross_period, evidence_rows: [73, 74], his_only_rows: []}
+
+  - case_id: ACP-04X
+    form: cross_period
+    channel: wechat
+    note: 两条候选全部越界且金额相同：跨期判据仍先于「金额相同」，不因金额全同改判信息耗尽
+    channel_rows:
+      - {order_no: ACP-04X, amount: "128.00", trade_time: "2026-09-04T12:00:00+08:00", source_row_no: 5}
+    his_rows:
+      - {order_no: ACP-04X, amount: "66.00", trade_time: "2026-08-30T09:00:00+08:00", ch_id: 940105, department: 门诊收费室, settle_type: 微信, source_row_no: 75}
+      - {order_no: ACP-04X, amount: "66.00", trade_time: "2026-09-08T09:00:00+08:00", ch_id: 940106, department: 门诊收费室, settle_type: 微信, source_row_no: 76}
+    expect: {status: ambiguous, kind: cross_period, taxonomy_kind: cross_period, evidence_rows: [75, 76], his_only_rows: []}
+
+  - case_id: ACP-05X
+    form: cross_period
+    channel: self_service
+    note: 半开区间右端：恰好 09-07 00:00:00 属下一期，不能在本期认领（否则下期再认一次）
+    channel_rows:
+      - {order_no: ACP-05X, amount: "66.00", trade_time: "2026-09-04T13:00:00+08:00", source_row_no: 6}
+    his_rows:
+      - {order_no: ACP-05X, amount: "66.00", trade_time: "2026-09-07T00:00:00+08:00", ch_id: 940107, department: 门诊收费室, settle_type: 自助机, source_row_no: 77}
+    expect: {status: cross_period, kind: cross_period, taxonomy_kind: cross_period, evidence_rows: [77], his_only_rows: []}
+
+  - case_id: ACP-06X
+    form: cross_period
+    channel: medical_ins
+    note: 半开区间左端：恰好 08-31 00:00:00 属本期，正常认领（边界不误伤）
+    channel_rows:
+      - {order_no: ACP-06X, amount: "66.00", trade_time: "2026-09-04T14:00:00+08:00", source_row_no: 7}
+    his_rows:
+      - {order_no: ACP-06X, amount: "66.00", trade_time: "2026-08-31T00:00:00+08:00", ch_id: 940108, department: 住院收费室, settle_type: 医保, source_row_no: 78}
+    expect: {status: matched, kind: "", evidence_rows: [78], his_only_rows: []}
+
+  # ═══════════ 五、refund_coexist（5 条）：退费与原单并存 ═══════════
+  - case_id: ACR-01
+    form: refund_coexist
+    channel: wechat
+    note: 原单行带退款列 + 同号原单行：候选里既有退费行也有原单行
+    channel_rows:
+      - {order_no: ACR-01, amount: "128.00", trade_time: "2026-09-02T10:00:00+08:00", source_row_no: 2}
+    his_rows:
+      - {order_no: ACR-01, amount: "128.00", refund: "86.00", trade_time: "2026-09-02T10:01:00+08:00", ch_id: 950101, department: 门诊收费室, settle_type: 微信, source_row_no: 81}
+      - {order_no: ACR-01, amount: "128.00", trade_time: "2026-09-02T10:02:00+08:00", ch_id: 950102, department: 门诊收费室, settle_type: 微信, source_row_no: 82}
+    expect: {status: ambiguous, kind: refund_and_original, taxonomy_kind: refund_coexist, evidence_rows: [81, 82], his_only_rows: []}
+
+  - case_id: ACR-02
+    form: refund_coexist
+    channel: wechat
+    note: HIS 侧红冲行金额为负、退款列为空：只看退款列会漏判
+    channel_rows:
+      - {order_no: ACR-02, amount: "86.00", trade_time: "2026-09-02T11:00:00+08:00", source_row_no: 3}
+    his_rows:
+      - {order_no: ACR-02, amount: "128.00", trade_time: "2026-09-02T11:01:00+08:00", ch_id: 950103, department: 门诊收费室, settle_type: 微信, source_row_no: 83}
+      - {order_no: ACR-02, amount: "-42.00", trade_type: 红冲, trade_time: "2026-09-02T11:05:00+08:00", ch_id: 950104, department: 门诊收费室, settle_type: 微信, source_row_no: 84}
+    expect: {status: ambiguous, kind: refund_and_original, taxonomy_kind: refund_coexist, evidence_rows: [83, 84], his_only_rows: []}
+
+  - case_id: ACR-03
+    form: refund_coexist
+    channel: alipay
+    note: >-
+      原单在**渠道侧**、退费行全在 HIS 侧：渠道行 43.00 本身不是退费行，它就是那笔原单，
+      HIS 侧两条全额红冲。因此「原单 + 退费并存」判据成立 —— 排查问题就是
+      「这 43.00 到底退没退」。**这与「两侧全是退费行、没有原单」是两回事**
+      （后者判 unknown，见 ACR-06），分类时看的是**全部参与判别的行**而非只看 HIS 侧。
+    channel_rows:
+      - {order_no: ACR-03, amount: "43.00", trade_time: "2026-09-02T12:00:00+08:00", source_row_no: 4}
+    his_rows:
+      - {order_no: ACR-03, amount: "43.00", refund: "43.00", trade_type: 退款, trade_time: "2026-09-02T12:01:00+08:00", ch_id: 950105, department: 门诊收费室, settle_type: 支付宝, source_row_no: 85}
+      - {order_no: ACR-03, amount: "43.00", refund: "43.00", trade_type: 退款, trade_time: "2026-09-02T12:02:00+08:00", ch_id: 950106, department: 门诊收费室, settle_type: 支付宝, source_row_no: 86}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: refund_coexist, evidence_rows: [85, 86], his_only_rows: []}
+
+  - case_id: ACR-04
+    form: refund_coexist
+    channel: unionpay
+    note: 原单 128.00 + 红冲 −42.00：符号直接可辨，退费判据比金额关系硬
+    channel_rows:
+      - {order_no: ACR-04, amount: "86.00", trade_time: "2026-09-03T09:00:00+08:00", source_row_no: 5}
+    his_rows:
+      - {order_no: ACR-04, amount: "128.00", trade_time: "2026-09-03T09:01:00+08:00", ch_id: 950107, department: 门诊收费室, settle_type: 银联, source_row_no: 87}
+      - {order_no: ACR-04, amount: "-42.00", trade_type: 红冲, trade_time: "2026-09-03T09:06:00+08:00", ch_id: 950108, department: 门诊收费室, settle_type: 银联, source_row_no: 88}
+    expect: {status: ambiguous, kind: refund_and_original, taxonomy_kind: refund_coexist, evidence_rows: [87, 88], his_only_rows: []}
+
+  - case_id: ACR-05
+    form: refund_coexist
+    channel: self_service
+    note: 原单 + 红冲 + 另一条原单混在一起：退费判据仍然先判，不被「扇出三条」带偏
+    channel_rows:
+      - {order_no: ACR-05, amount: "152.00", trade_time: "2026-09-03T10:00:00+08:00", source_row_no: 6}
+    his_rows:
+      - {order_no: ACR-05, amount: "128.00", trade_time: "2026-09-03T10:01:00+08:00", ch_id: 950109, department: 门诊收费室, settle_type: 自助机, source_row_no: 89}
+      - {order_no: ACR-05, amount: "-42.00", trade_type: 红冲, trade_time: "2026-09-03T10:06:00+08:00", ch_id: 950110, department: 门诊收费室, settle_type: 自助机, source_row_no: 90}
+      - {order_no: ACR-05, amount: "66.00", trade_time: "2026-09-03T10:07:00+08:00", ch_id: 950111, department: 门诊收费室, settle_type: 自助机, source_row_no: 91}
+    expect: {status: ambiguous, kind: refund_and_original, taxonomy_kind: refund_coexist, evidence_rows: [89, 90, 91], his_only_rows: []}
+
+  - case_id: ACR-06
+    form: refund_coexist
+    channel: unionpay
+    note: >-
+      **退费形态的负例**：渠道行与 HIS 行**全部**是退费行、根本没有原单行。
+      判成「退费与原单并存」会把人引去查「红冲有没有生效」—— 而这里没有原单可冲。
+      分类时看的必须是全部参与判别的行（渠道行也算），只看 HIS 侧就会误判并存。
+      形态上 −86.00 = −42.00 + (−44.00) 守恒，落「一码付拆多笔」。
+    channel_rows:
+      - {order_no: ACR-06, amount: "-86.00", trade_type: 红冲, trade_time: "2026-09-03T11:00:00+08:00", source_row_no: 7}
+    his_rows:
+      - {order_no: ACR-06, amount: "-42.00", trade_type: 红冲, trade_time: "2026-09-03T11:01:00+08:00", ch_id: 950112, department: 门诊收费室, settle_type: 银联, source_row_no: 92}
+      - {order_no: ACR-06, amount: "-44.00", trade_type: 红冲, trade_time: "2026-09-03T11:02:00+08:00", ch_id: 950113, department: 门诊收费室, settle_type: 银联, source_row_no: 93}
+    expect: {status: ambiguous, kind: split, taxonomy_kind: split_payment, evidence_rows: [92, 93], his_only_rows: []}
+
+  # ═══════════════ 六、weak_match（8 条）：弱匹配永不认领 ═══════════════
+  - case_id: ACK-01
+    form: weak_match
+    channel: wechat
+    note: 渠道行缺商户订单号，按金额 + 时间窗唯一命中：唯一也只标待人工
+    channel_rows:
+      - {order_no: "", amount: "66.00", trade_time: "2026-09-02T10:00:00+08:00", source_row_no: 2}
+    his_rows:
+      - {order_no: ACK-01, amount: "66.00", trade_time: "2026-09-02T10:02:00+08:00", ch_id: 960101, department: 门诊收费室, settle_type: 微信, source_row_no: 101}
+    expect: {status: weak_pending, kind: weak_multiple, taxonomy_kind: unknown, evidence_rows: [101], his_only_rows: []}
+
+  - case_id: ACK-02
+    form: weak_match
+    channel: wechat
+    note: 缺单号 + 两条同金额候选：同一天同金额的缴费有几十笔，金额本身不构成判据
+    channel_rows:
+      - {order_no: "", amount: "66.00", trade_time: "2026-09-02T11:00:00+08:00", source_row_no: 3}
+    his_rows:
+      - {order_no: ACK-02A, amount: "66.00", trade_time: "2026-09-02T11:01:00+08:00", ch_id: 960102, department: 门诊收费室, settle_type: 微信, source_row_no: 102}
+      - {order_no: ACK-02B, amount: "66.00", trade_time: "2026-09-02T11:05:00+08:00", ch_id: 960103, department: 急诊收费室, settle_type: 微信, source_row_no: 103}
+    expect: {status: weak_pending, kind: weak_multiple, taxonomy_kind: unknown, evidence_rows: [102, 103], his_only_rows: []}
+
+  - case_id: ACK-03
+    form: weak_match
+    channel: alipay
+    note: 单号存在但 HIS 侧没有这笔：同样是弱匹配，排查方向是「单号写错」而非「压根没单号」
+    channel_rows:
+      - {order_no: ACK-03, amount: "66.00", trade_time: "2026-09-02T12:00:00+08:00", source_row_no: 4}
+    his_rows:
+      - {order_no: ACK-99, amount: "66.00", trade_time: "2026-09-02T12:01:00+08:00", ch_id: 960104, department: 门诊收费室, settle_type: 支付宝, source_row_no: 104}
+    expect: {status: weak_pending, kind: weak_multiple, taxonomy_kind: unknown, evidence_rows: [104], his_only_rows: []}
+
+  - case_id: ACK-04
+    form: weak_match
+    channel: unionpay
+    note: 缺单号 + 两条分位不同的候选（66.00 / 66.01，都落在容差内）：金额能把候选区分开，但仍不自动归并
+    channel_rows:
+      - {order_no: "", amount: "66.00", trade_time: "2026-09-03T09:00:00+08:00", source_row_no: 5}
+    his_rows:
+      - {order_no: ACK-04A, amount: "66.00", trade_time: "2026-09-03T09:01:00+08:00", ch_id: 960105, department: 门诊收费室, settle_type: 银联, source_row_no: 105}
+      - {order_no: ACK-04B, amount: "66.01", trade_time: "2026-09-03T09:02:00+08:00", ch_id: 960106, department: 门诊收费室, settle_type: 银联, source_row_no: 106}
+    expect: {status: weak_pending, kind: weak_multiple, taxonomy_kind: unknown, evidence_rows: [105, 106], his_only_rows: []}
+
+  - case_id: ACK-05
+    form: weak_match
+    channel: wechat
+    note: 唯一候选落在账期窗口之外：弱匹配按「金额 + 窗内」找候选，越界记录不会被捞回来
+    channel_rows:
+      - {order_no: ACK-05, amount: "66.00", trade_time: "2026-09-03T10:00:00+08:00", source_row_no: 6}
+    his_rows:
+      - {order_no: ACK-05X, amount: "66.00", trade_time: "2026-09-07T09:00:00+08:00", ch_id: 960107, department: 门诊收费室, settle_type: 微信, source_row_no: 107}
+    expect: {status: channel_only, kind: "", evidence_rows: [], his_only_rows: [107]}
+
+  - case_id: ACK-06
+    form: weak_match
+    channel: alipay
+    note: 金额差 0.05 超出容差：弱匹配也不放宽判据，否则会把「压根不是这笔」认成候选
+    channel_rows:
+      - {order_no: ACK-06, amount: "66.00", trade_time: "2026-09-03T11:00:00+08:00", source_row_no: 7}
+    his_rows:
+      - {order_no: ACK-96, amount: "66.05", trade_time: "2026-09-03T11:01:00+08:00", ch_id: 960108, department: 门诊收费室, settle_type: 支付宝, source_row_no: 108}
+    expect: {status: channel_only, kind: "", evidence_rows: [], his_only_rows: [108]}
+
+  - case_id: ACK-07
+    form: weak_match
+    channel: wechat
+    note: 唯一候选已被前一行精确匹配认领：弱匹配不退回全集，否则同一笔钱会被算两次
+    focus_index: 1
+    channel_rows:
+      - {order_no: ACK-07, amount: "66.00", trade_time: "2026-09-03T14:00:00+08:00", source_row_no: 8}
+      - {order_no: "", amount: "66.00", trade_time: "2026-09-03T14:05:00+08:00", source_row_no: 9}
+    his_rows:
+      - {order_no: ACK-07, amount: "66.00", trade_time: "2026-09-03T14:01:00+08:00", ch_id: 960109, department: 门诊收费室, settle_type: 微信, source_row_no: 109}
+    expect: {status: channel_only, kind: "", evidence_rows: [], his_only_rows: []}
+
+  - case_id: ACK-08
+    form: weak_match
+    channel: self_service
+    note: 两行渠道款弱匹配到同一条 HIS 收费：弱匹配从不认领，两行都报待人工，结论是「这条没对上」
+    focus_index: 1
+    channel_rows:
+      - {order_no: "", amount: "66.00", trade_time: "2026-09-04T09:00:00+08:00", source_row_no: 10}
+      - {order_no: "", amount: "66.00", trade_time: "2026-09-04T09:10:00+08:00", source_row_no: 11}
+    his_rows:
+      - {order_no: ACK-08, amount: "66.00", trade_time: "2026-09-04T09:05:00+08:00", ch_id: 960110, department: 门诊收费室, settle_type: 自助机, source_row_no: 110}
+    expect: {status: weak_pending, kind: weak_multiple, taxonomy_kind: unknown, evidence_rows: [110], his_only_rows: []}
+
+  # ══════════════ 七、dirty_row（4 条）：脏数据下的结论稳定性 ══════════════
+  - case_id: ACD-01
+    form: dirty_row
+    channel: wechat
+    note: HIS 侧单号带首尾空格：归一后仍能对上，不能因此报成单边账
+    channel_rows:
+      - {order_no: ACD-01, amount: "128.00", trade_time: "2026-09-02T10:00:00+08:00", source_row_no: 2}
+    his_rows:
+      - {order_no: " ACD-01 ", his_order_no: " ACD-01 ", amount: "128.00", trade_time: "2026-09-02T10:01:00+08:00", ch_id: 970101, department: 门诊收费室, settle_type: 微信, source_row_no: 111}
+    expect: {status: matched, kind: "", evidence_rows: [111], his_only_rows: []}
+
+  - case_id: ACD-02
+    form: dirty_row
+    channel: alipay
+    note: 两侧单号都空：空单号不猜（索引不收空键），退到金额 + 时间窗做弱匹配
+    channel_rows:
+      - {order_no: "", amount: "66.00", trade_time: "2026-09-02T11:00:00+08:00", source_row_no: 3}
+    his_rows:
+      - {order_no: "", his_order_no: "", amount: "66.00", trade_time: "2026-09-02T11:01:00+08:00", ch_id: 970102, department: 门诊收费室, settle_type: 支付宝, source_row_no: 112}
+    expect: {status: weak_pending, kind: weak_multiple, taxonomy_kind: unknown, evidence_rows: [112], his_only_rows: []}
+
+  - case_id: ACD-03
+    form: dirty_row
+    channel: unionpay
+    note: HIS 行缺收费时刻：缺时刻就没有窗口可比，不拿它当弱匹配候选（也不因此崩）
+    channel_rows:
+      - {order_no: "", amount: "66.00", trade_time: "2026-09-02T12:00:00+08:00", source_row_no: 4}
+    his_rows:
+      - {order_no: ACD-03, amount: "66.00", trade_time: null, ch_id: 970103, department: 门诊收费室, settle_type: 银联, source_row_no: 113}
+    expect: {status: channel_only, kind: "", evidence_rows: [], his_only_rows: [113]}
+
+  - case_id: ACD-04
+    form: dirty_row
+    channel: self_service
+    note: 同一单号两条完全相同的 HIS 记录：判「金额相同的多候选」（信息耗尽），既不是退费并存也不是拆笔
+    channel_rows:
+      - {order_no: ACD-04, amount: "66.00", trade_time: "2026-09-03T09:00:00+08:00", source_row_no: 5}
+    his_rows:
+      - {order_no: ACD-04, amount: "66.00", trade_time: "2026-09-03T09:01:00+08:00", ch_id: 970104, department: 门诊收费室, settle_type: 自助机, source_row_no: 114}
+      - {order_no: ACD-04, amount: "66.00", trade_time: "2026-09-03T09:01:00+08:00", ch_id: 970105, department: 门诊收费室, settle_type: 自助机, source_row_no: 115}
+    expect: {status: ambiguous, kind: equal_amount, taxonomy_kind: unknown, evidence_rows: [114, 115], his_only_rows: []}

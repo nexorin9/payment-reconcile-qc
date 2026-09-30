@@ -1,0 +1,1473 @@
+{
+  "model": "reconq-attribution-eval-standin（评测用录制响应替身，非真实端点输出）",
+  "note_zh": "**这不是任何真实模型的输出。** 院内模型端点需要院内凭据，本轮未实连；为了让「模型档 vs 规则档」的评测在任何机器上可复现，响应按受控成因字典与证据包真实行标识构造，行为分布由每条样本的 behaviour 字段显式声明。产品代码走真实 OpenAI-compatible 协议（真实 URL / response_format / Schema 六层校验 / 证据引用越界作废），替身只在 HTTP 传输层。接上真实端点后用 `reconq attrib-eval --record` 重录，评测口径不用改。**这份替身不许被当成「模型有多准」的证据。**",
+  "prompt_version": "v2",
+  "recorded_at": "2026-09-30",
+  "responses": {
+    "C01-channel-only-wechat": {
+      "drafts": [
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "wechat_bill.csv:3"
+          ],
+          "explanation_zh": "证据行 wechat_bill.csv:3 与 （无候选行） 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "wechat_bill.csv:3"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "wechat_bill.csv:3",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 1735,
+        "total_tokens": 1875
+      }
+    },
+    "C02-channel-only-alipay": {
+      "drafts": [
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "alipay_bill.csv:5"
+          ],
+          "explanation_zh": "证据行 alipay_bill.csv:5 与 （无候选行） 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "alipay_bill.csv:5"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "alipay_bill.csv:5",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 1497,
+        "total_tokens": 1637
+      }
+    },
+    "C03-channel-only-unionpay": {
+      "drafts": [
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "unionpay_bill.csv:7"
+          ],
+          "explanation_zh": "形态上像是 contract_config_error，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "unionpay_bill.csv:7"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 his_missing_order。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "unionpay_bill.csv:7",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 1486,
+        "total_tokens": 1626
+      }
+    },
+    "C04-channel-only-self_service": {
+      "drafts": [
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "self_service_bill.csv:9"
+          ],
+          "explanation_zh": "证据行 self_service_bill.csv:9 与 （无候选行） 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "self_service_bill.csv:9"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "self_service_bill.csv:9",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 1675,
+        "total_tokens": 1815
+      }
+    },
+    "C05-channel-only-medical_ins": {
+      "drafts": [
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "medical_ins_bill.csv:11"
+          ],
+          "explanation_zh": "证据行 medical_ins_bill.csv:11 与 （无候选行） 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "medical_ins_bill.csv:11"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "medical_ins_bill.csv:11",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 1517,
+        "total_tokens": 1657
+      }
+    },
+    "C06-mismatch-wechat": {
+      "drafts": [
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "wechat_bill.csv:13",
+            "charge_record.csv:61"
+          ],
+          "explanation_zh": "证据行 wechat_bill.csv:13 与 charge_record.csv:61 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "wechat_bill.csv:13"
+          ],
+          "explanation_zh": "次要可能：merged_payment_allocation，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "cross_period_duplicate",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "wechat_bill.csv:13"
+          ],
+          "explanation_zh": "次要可能：cross_period_duplicate，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "wechat_bill.csv:13",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 1930,
+        "total_tokens": 2110
+      }
+    },
+    "C07-mismatch-alipay": {
+      "drafts": [
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "alipay_bill.csv:16"
+          ],
+          "explanation_zh": "形态上像是 merged_payment_allocation，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "alipay_bill.csv:16",
+            "charge_record.csv:63"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 contract_config_error。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "cross_period_duplicate",
+          "confidence": 0.11,
+          "evidence_refs": [
+            "alipay_bill.csv:16"
+          ],
+          "explanation_zh": "第三可能：cross_period_duplicate。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "alipay_bill.csv:16",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 1774,
+        "total_tokens": 1954
+      }
+    },
+    "C08-mismatch-unionpay": {
+      "drafts": [
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "unionpay_bill.csv:19",
+            "charge_record.csv:65"
+          ],
+          "explanation_zh": "证据行 unionpay_bill.csv:19 与 charge_record.csv:65 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "unionpay_bill.csv:19"
+          ],
+          "explanation_zh": "次要可能：merged_payment_allocation，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "cross_period_duplicate",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "unionpay_bill.csv:19"
+          ],
+          "explanation_zh": "次要可能：cross_period_duplicate，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "unionpay_bill.csv:19",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 1752,
+        "total_tokens": 1932
+      }
+    },
+    "C09-mismatch-self_service": {
+      "drafts": [
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "self_service_bill.csv:22",
+            "charge_record.csv:67"
+          ],
+          "explanation_zh": "证据行 self_service_bill.csv:22 与 charge_record.csv:67 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "self_service_bill.csv:22"
+          ],
+          "explanation_zh": "次要可能：merged_payment_allocation，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "cross_period_duplicate",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "self_service_bill.csv:22"
+          ],
+          "explanation_zh": "次要可能：cross_period_duplicate，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "self_service_bill.csv:22",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2030,
+        "total_tokens": 2210
+      }
+    },
+    "C10-mismatch-medical_ins": {
+      "drafts": [
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "medical_ins_bill.csv:25",
+            "charge_record.csv:69"
+          ],
+          "explanation_zh": "证据行 medical_ins_bill.csv:25 与 charge_record.csv:69 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "medical_ins_bill.csv:25"
+          ],
+          "explanation_zh": "次要可能：merged_payment_allocation，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "cross_period_duplicate",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "medical_ins_bill.csv:25"
+          ],
+          "explanation_zh": "次要可能：cross_period_duplicate，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "medical_ins_bill.csv:25",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 1778,
+        "total_tokens": 1958
+      }
+    },
+    "C11-split-payment-wechat": {
+      "drafts": [
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "wechat_bill.csv:23",
+            "charge_record.csv:71",
+            "charge_record.csv:72"
+          ],
+          "explanation_zh": "证据行 wechat_bill.csv:23 与 charge_record.csv:71、charge_record.csv:72 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "wechat_bill.csv:23"
+          ],
+          "explanation_zh": "次要可能：merged_payment_allocation，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "wechat_bill.csv:23"
+          ],
+          "explanation_zh": "次要可能：refund_offset_in_his，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "wechat_bill.csv:23",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 3040,
+        "total_tokens": 3220
+      }
+    },
+    "C12-split-payment-alipay": {
+      "drafts": [
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "alipay_bill.csv:25",
+            "charge_record.csv:73",
+            "charge_record.csv:74"
+          ],
+          "explanation_zh": "证据行 alipay_bill.csv:25 与 charge_record.csv:73、charge_record.csv:74 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "alipay_bill.csv:25"
+          ],
+          "explanation_zh": "次要可能：merged_payment_allocation，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "alipay_bill.csv:25"
+          ],
+          "explanation_zh": "次要可能：refund_offset_in_his，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "alipay_bill.csv:25",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2897,
+        "total_tokens": 3077
+      }
+    },
+    "C13-split-payment-unionpay": {
+      "drafts": [
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "unionpay_bill.csv:27"
+          ],
+          "explanation_zh": "形态上像是 merged_payment_allocation，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "unionpay_bill.csv:27",
+            "charge_record.csv:75",
+            "charge_record.csv:76"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 split_payment_unallocated。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.11,
+          "evidence_refs": [
+            "unionpay_bill.csv:27"
+          ],
+          "explanation_zh": "第三可能：refund_offset_in_his。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "unionpay_bill.csv:27",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2878,
+        "total_tokens": 3058
+      }
+    },
+    "C14-split-payment-self_service": {
+      "drafts": [
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "self_service_bill.csv:29",
+            "charge_record.csv:77",
+            "charge_record.csv:78"
+          ],
+          "explanation_zh": "证据行 self_service_bill.csv:29 与 charge_record.csv:77、charge_record.csv:78 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "self_service_bill.csv:29"
+          ],
+          "explanation_zh": "次要可能：merged_payment_allocation，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "self_service_bill.csv:29"
+          ],
+          "explanation_zh": "次要可能：refund_offset_in_his，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "self_service_bill.csv:29",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 3148,
+        "total_tokens": 3328
+      }
+    },
+    "C15-split-payment-medical_ins": {
+      "drafts": [
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "medical_ins_bill.csv:31",
+            "charge_record.csv:79",
+            "charge_record.csv:80"
+          ],
+          "explanation_zh": "证据行 medical_ins_bill.csv:31 与 charge_record.csv:79、charge_record.csv:80 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "medical_ins_bill.csv:31"
+          ],
+          "explanation_zh": "次要可能：merged_payment_allocation，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "medical_ins_bill.csv:31"
+          ],
+          "explanation_zh": "次要可能：refund_offset_in_his，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "medical_ins_bill.csv:31",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2824,
+        "total_tokens": 3004
+      }
+    },
+    "C16-merged-payment-wechat": {
+      "drafts": [
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "wechat_bill.csv:33",
+            "charge_record.csv:81",
+            "charge_record.csv:82"
+          ],
+          "explanation_zh": "证据行 wechat_bill.csv:33 与 charge_record.csv:81、charge_record.csv:82 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "wechat_bill.csv:33"
+          ],
+          "explanation_zh": "次要可能：split_payment_unallocated，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "wechat_bill.csv:33"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "wechat_bill.csv:33",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 3042,
+        "total_tokens": 3222
+      }
+    },
+    "C17-merged-payment-alipay": {
+      "drafts": [
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "alipay_bill.csv:35",
+            "charge_record.csv:84",
+            "charge_record.csv:85"
+          ],
+          "explanation_zh": "证据行 alipay_bill.csv:35 与 charge_record.csv:84、charge_record.csv:85 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "alipay_bill.csv:35"
+          ],
+          "explanation_zh": "次要可能：split_payment_unallocated，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "alipay_bill.csv:35"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "alipay_bill.csv:35",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 3552,
+        "total_tokens": 3732
+      }
+    },
+    "C18-merged-payment-unionpay": {
+      "drafts": [
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "unionpay_bill.csv:37"
+          ],
+          "explanation_zh": "形态上像是 split_payment_unallocated，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "unionpay_bill.csv:37",
+            "charge_record.csv:87",
+            "charge_record.csv:88"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 merged_payment_allocation。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.11,
+          "evidence_refs": [
+            "unionpay_bill.csv:37"
+          ],
+          "explanation_zh": "第三可能：contract_config_error。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "unionpay_bill.csv:37",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2877,
+        "total_tokens": 3057
+      }
+    },
+    "C19-merged-payment-self_service": {
+      "drafts": [
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.51,
+          "evidence_refs": [
+            "self_service_bill.csv:39"
+          ],
+          "explanation_zh": "最像 split_payment_unallocated。（评测替身响应 · 行为 miss）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.29,
+          "evidence_refs": [
+            "self_service_bill.csv:39"
+          ],
+          "explanation_zh": "其次 contract_config_error。（评测替身响应 · 行为 miss）"
+        }
+      ],
+      "ref": "self_service_bill.csv:39",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 3148,
+        "total_tokens": 3288
+      }
+    },
+    "C20-merged-payment-medical_ins": {
+      "drafts": [
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.51,
+          "evidence_refs": [
+            "medical_ins_bill.csv:41"
+          ],
+          "explanation_zh": "最像 split_payment_unallocated。（评测替身响应 · 行为 miss）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.29,
+          "evidence_refs": [
+            "medical_ins_bill.csv:41"
+          ],
+          "explanation_zh": "其次 contract_config_error。（评测替身响应 · 行为 miss）"
+        }
+      ],
+      "ref": "medical_ins_bill.csv:41",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 3480,
+        "total_tokens": 3620
+      }
+    },
+    "C21-refund-coexist-wechat": {
+      "drafts": [
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "wechat_bill.csv:23",
+            "charge_record.csv:9",
+            "charge_record.csv:10"
+          ],
+          "explanation_zh": "证据行 wechat_bill.csv:23 与 charge_record.csv:9、charge_record.csv:10 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "wechat_bill.csv:23"
+          ],
+          "explanation_zh": "次要可能：split_payment_unallocated，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "wechat_bill.csv:23",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 3044,
+        "total_tokens": 3184
+      }
+    },
+    "C22-refund-coexist-alipay": {
+      "drafts": [
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "alipay_bill.csv:25",
+            "charge_record.csv:7",
+            "charge_record.csv:8"
+          ],
+          "explanation_zh": "证据行 alipay_bill.csv:25 与 charge_record.csv:7、charge_record.csv:8 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "alipay_bill.csv:25"
+          ],
+          "explanation_zh": "次要可能：split_payment_unallocated，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "alipay_bill.csv:25",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 2876,
+        "total_tokens": 3016
+      }
+    },
+    "C23-refund-coexist-wechat": {
+      "drafts": [
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "wechat_bill.csv:27",
+            "charge_record.csv:11",
+            "charge_record.csv:12"
+          ],
+          "explanation_zh": "证据行 wechat_bill.csv:27 与 charge_record.csv:11、charge_record.csv:12 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "wechat_bill.csv:27"
+          ],
+          "explanation_zh": "次要可能：split_payment_unallocated，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "wechat_bill.csv:27",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 3045,
+        "total_tokens": 3185
+      }
+    },
+    "C24-refund-coexist-unionpay": {
+      "drafts": [
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "unionpay_bill.csv:29"
+          ],
+          "explanation_zh": "形态上像是 split_payment_unallocated，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "unionpay_bill.csv:29",
+            "charge_record.csv:6",
+            "charge_record.csv:7"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 refund_offset_in_his。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "unionpay_bill.csv:29",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 2879,
+        "total_tokens": 3019
+      }
+    },
+    "C25-refund-coexist-self_service": {
+      "drafts": [
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "self_service_bill.csv:31",
+            "charge_record.csv:8",
+            "charge_record.csv:9"
+          ],
+          "explanation_zh": "证据行 self_service_bill.csv:31 与 charge_record.csv:8、charge_record.csv:9 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "self_service_bill.csv:31"
+          ],
+          "explanation_zh": "次要可能：split_payment_unallocated，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "self_service_bill.csv:31",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 3147,
+        "total_tokens": 3287
+      }
+    },
+    "C26-cross-period-wechat": {
+      "drafts": [
+        {
+          "cause": "period_boundary_landing",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "wechat_bill.csv:43",
+            "charge_record.csv:91"
+          ],
+          "explanation_zh": "证据行 wechat_bill.csv:43 与 charge_record.csv:91 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "wechat_bill.csv:43"
+          ],
+          "explanation_zh": "次要可能：his_missing_order，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "wechat_bill.csv:43"
+          ],
+          "explanation_zh": "次要可能：refund_offset_in_his，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "wechat_bill.csv:43",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2391,
+        "total_tokens": 2571
+      }
+    },
+    "C27-cross-period-alipay": {
+      "drafts": [
+        {
+          "cause": "period_boundary_landing",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "alipay_bill.csv:45",
+            "charge_record.csv:93"
+          ],
+          "explanation_zh": "证据行 alipay_bill.csv:45 与 charge_record.csv:93 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "alipay_bill.csv:45"
+          ],
+          "explanation_zh": "次要可能：his_missing_order，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "alipay_bill.csv:45"
+          ],
+          "explanation_zh": "次要可能：refund_offset_in_his，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "alipay_bill.csv:45",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2243,
+        "total_tokens": 2423
+      }
+    },
+    "C28-cross-period-unionpay": {
+      "drafts": [
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "unionpay_bill.csv:47"
+          ],
+          "explanation_zh": "形态上像是 his_missing_order，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "period_boundary_landing",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "unionpay_bill.csv:47",
+            "charge_record.csv:95"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 period_boundary_landing。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.11,
+          "evidence_refs": [
+            "unionpay_bill.csv:47"
+          ],
+          "explanation_zh": "第三可能：refund_offset_in_his。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "unionpay_bill.csv:47",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2220,
+        "total_tokens": 2400
+      }
+    },
+    "C29-cross-period-self_service": {
+      "drafts": [
+        {
+          "cause": "period_boundary_landing",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "self_service_bill.csv:49",
+            "charge_record.csv:97"
+          ],
+          "explanation_zh": "证据行 self_service_bill.csv:49 与 charge_record.csv:97 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "self_service_bill.csv:49"
+          ],
+          "explanation_zh": "次要可能：his_missing_order，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "self_service_bill.csv:49"
+          ],
+          "explanation_zh": "次要可能：refund_offset_in_his，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "self_service_bill.csv:49",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2490,
+        "total_tokens": 2670
+      }
+    },
+    "C30-cross-period-medical_ins": {
+      "drafts": [
+        {
+          "cause": "period_boundary_landing",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "medical_ins_bill.csv:51",
+            "charge_record.csv:99"
+          ],
+          "explanation_zh": "证据行 medical_ins_bill.csv:51 与 charge_record.csv:99 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "medical_ins_bill.csv:51"
+          ],
+          "explanation_zh": "次要可能：his_missing_order，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "medical_ins_bill.csv:51"
+          ],
+          "explanation_zh": "次要可能：refund_offset_in_his，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "medical_ins_bill.csv:51",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2190,
+        "total_tokens": 2370
+      }
+    },
+    "C31-cross-period-wechat": {
+      "drafts": [
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "wechat_bill.csv:53"
+          ],
+          "explanation_zh": "形态上像是 his_missing_order，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "period_boundary_landing",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "wechat_bill.csv:53",
+            "charge_record.csv:101"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 period_boundary_landing。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "refund_offset_in_his",
+          "confidence": 0.11,
+          "evidence_refs": [
+            "wechat_bill.csv:53"
+          ],
+          "explanation_zh": "第三可能：refund_offset_in_his。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "wechat_bill.csv:53",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2390,
+        "total_tokens": 2570
+      }
+    },
+    "C32-duplicate-claim-unionpay": {
+      "drafts": [
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "unionpay_bill.csv:6",
+            "charge_record.csv:101"
+          ],
+          "explanation_zh": "证据行 unionpay_bill.csv:6 与 charge_record.csv:101 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "channel_late_posting",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "unionpay_bill.csv:6"
+          ],
+          "explanation_zh": "次要可能：channel_late_posting，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "unionpay_bill.csv:6",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 2123,
+        "total_tokens": 2263
+      }
+    },
+    "C33-duplicate-claim-wechat": {
+      "drafts": [
+        {
+          "cause": "channel_late_posting",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "wechat_bill.csv:15"
+          ],
+          "explanation_zh": "形态上像是 channel_late_posting，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "wechat_bill.csv:15",
+            "charge_record.csv:103"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 merged_payment_allocation。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "wechat_bill.csv:15",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 2200,
+        "total_tokens": 2340
+      }
+    },
+    "C34-duplicate-claim-alipay": {
+      "drafts": [
+        {
+          "cause": "merged_payment_allocation",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "alipay_bill.csv:19",
+            "charge_record.csv:105"
+          ],
+          "explanation_zh": "证据行 alipay_bill.csv:19 与 charge_record.csv:105 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "channel_late_posting",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "alipay_bill.csv:19"
+          ],
+          "explanation_zh": "次要可能：channel_late_posting，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "alipay_bill.csv:19",
+      "usage": {
+        "completion_tokens": 140,
+        "prompt_tokens": 2052,
+        "total_tokens": 2192
+      }
+    },
+    "C35-weak-pending-alipay": {
+      "drafts": [
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "alipay_bill.csv:5",
+            "charge_record.csv:111"
+          ],
+          "explanation_zh": "证据行 alipay_bill.csv:5 与 charge_record.csv:111 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "channel_late_posting",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "alipay_bill.csv:5"
+          ],
+          "explanation_zh": "次要可能：channel_late_posting，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "cross_period_duplicate",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "alipay_bill.csv:5"
+          ],
+          "explanation_zh": "次要可能：cross_period_duplicate，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "alipay_bill.csv:5",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2054,
+        "total_tokens": 2234
+      }
+    },
+    "C36-weak-pending-self_service": {
+      "drafts": [
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "self_service_bill.csv:12",
+            "charge_record.csv:113"
+          ],
+          "explanation_zh": "证据行 self_service_bill.csv:12 与 charge_record.csv:113 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "channel_late_posting",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "self_service_bill.csv:12"
+          ],
+          "explanation_zh": "次要可能：channel_late_posting，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "cross_period_duplicate",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "self_service_bill.csv:12"
+          ],
+          "explanation_zh": "次要可能：cross_period_duplicate，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "self_service_bill.csv:12",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2316,
+        "total_tokens": 2496
+      }
+    },
+    "C37-weak-pending-medical_ins": {
+      "drafts": [
+        {
+          "cause": "channel_late_posting",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "medical_ins_bill.csv:14"
+          ],
+          "explanation_zh": "形态上像是 channel_late_posting，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "medical_ins_bill.csv:14",
+            "charge_record.csv:115"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 his_missing_order。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "cross_period_duplicate",
+          "confidence": 0.11,
+          "evidence_refs": [
+            "medical_ins_bill.csv:14"
+          ],
+          "explanation_zh": "第三可能：cross_period_duplicate。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "medical_ins_bill.csv:14",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2158,
+        "total_tokens": 2338
+      }
+    },
+    "S1-override-refund-offset-wechat": {
+      "drafts": [
+        {
+          "cause": "bill_type_excludes_refund",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "wechat_bill.csv:51"
+          ],
+          "explanation_zh": "证据行 wechat_bill.csv:51 与 （无候选行） 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "wechat_bill.csv:51"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "wechat_bill.csv:51"
+          ],
+          "explanation_zh": "次要可能：his_missing_order，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "wechat_bill.csv:51",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 1741,
+        "total_tokens": 1921
+      }
+    },
+    "S2-override-refund-offset-alipay": {
+      "drafts": [
+        {
+          "cause": "bill_type_excludes_refund",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "alipay_bill.csv:53"
+          ],
+          "explanation_zh": "证据行 alipay_bill.csv:53 与 （无候选行） 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "alipay_bill.csv:53"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "alipay_bill.csv:53"
+          ],
+          "explanation_zh": "次要可能：his_missing_order，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "alipay_bill.csv:53",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 1480,
+        "total_tokens": 1660
+      }
+    },
+    "S3-override-cross-period-dup-unionpay": {
+      "drafts": [
+        {
+          "cause": "cross_period_duplicate",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "unionpay_bill.csv:55",
+            "charge_record.csv:141"
+          ],
+          "explanation_zh": "证据行 unionpay_bill.csv:55 与 charge_record.csv:141 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "unionpay_bill.csv:55"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "unionpay_bill.csv:55"
+          ],
+          "explanation_zh": "次要可能：his_missing_order，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "unionpay_bill.csv:55",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 2219,
+        "total_tokens": 2399
+      }
+    },
+    "S4-override-late-posting-alipay": {
+      "drafts": [
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.58,
+          "evidence_refs": [
+            "alipay_bill.csv:57"
+          ],
+          "explanation_zh": "形态上像是 contract_config_error，但这条线索来自单一字段。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "channel_late_posting",
+          "confidence": 0.34,
+          "evidence_refs": [
+            "alipay_bill.csv:57"
+          ],
+          "explanation_zh": "但候选行的金额关系更支持 channel_late_posting。（评测替身响应 · 行为 correct_at_2）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.11,
+          "evidence_refs": [
+            "alipay_bill.csv:57"
+          ],
+          "explanation_zh": "第三可能：his_missing_order。（评测替身响应 · 行为 correct_at_2）"
+        }
+      ],
+      "ref": "alipay_bill.csv:57",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 1582,
+        "total_tokens": 1762
+      }
+    },
+    "S5-override-split-on-weak-self_service": {
+      "drafts": [
+        {
+          "cause": "split_payment_unallocated",
+          "confidence": 0.64,
+          "evidence_refs": [
+            "self_service_bill.csv:59"
+          ],
+          "explanation_zh": "证据行 self_service_bill.csv:59 与 （无候选行） 给出的形态与该成因一致。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "contract_config_error",
+          "confidence": 0.22,
+          "evidence_refs": [
+            "self_service_bill.csv:59"
+          ],
+          "explanation_zh": "次要可能：contract_config_error，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        },
+        {
+          "cause": "his_missing_order",
+          "confidence": 0.16999999999999998,
+          "evidence_refs": [
+            "self_service_bill.csv:59"
+          ],
+          "explanation_zh": "次要可能：his_missing_order，但证据不足以支持。（评测替身响应 · 行为 correct）"
+        }
+      ],
+      "ref": "self_service_bill.csv:59",
+      "usage": {
+        "completion_tokens": 180,
+        "prompt_tokens": 1680,
+        "total_tokens": 1860
+      }
+    },
+    "U1-unknown-equal-amounts-wechat": {
+      "drafts": [
+        {
+          "cause": "undetermined",
+          "confidence": 0.41,
+          "evidence_refs": [
+            "wechat_bill.csv:15",
+            "charge_record.csv:121",
+            "charge_record.csv:123"
+          ],
+          "explanation_zh": "证据包里能用来判别成因的字段不足以定性，判不出是哪一类，交人工判定。（评测替身响应 · 行为 refuse）"
+        }
+      ],
+      "ref": "wechat_bill.csv:15",
+      "usage": {
+        "completion_tokens": 100,
+        "prompt_tokens": 3016,
+        "total_tokens": 3116
+      }
+    },
+    "U2-unknown-equal-amounts-unionpay": {
+      "drafts": [
+        {
+          "cause": "undetermined",
+          "confidence": 0.41,
+          "evidence_refs": [
+            "unionpay_bill.csv:7",
+            "charge_record.csv:123",
+            "charge_record.csv:125"
+          ],
+          "explanation_zh": "证据包里能用来判别成因的字段不足以定性，判不出是哪一类，交人工判定。（评测替身响应 · 行为 refuse）"
+        }
+      ],
+      "ref": "unionpay_bill.csv:7",
+      "usage": {
+        "completion_tokens": 100,
+        "prompt_tokens": 2854,
+        "total_tokens": 2954
+      }
+    },
+    "U3-unknown-missing-column-self_service": {
+      "drafts": [
+        {
+          "cause": "undetermined",
+          "confidence": 0.41,
+          "evidence_refs": [
+            "self_service_bill.csv:8"
+          ],
+          "explanation_zh": "证据包里能用来判别成因的字段不足以定性，判不出是哪一类，交人工判定。（评测替身响应 · 行为 refuse）"
+        }
+      ],
+      "ref": "self_service_bill.csv:8",
+      "usage": {
+        "completion_tokens": 100,
+        "prompt_tokens": 1677,
+        "total_tokens": 1777
+      }
+    },
+    "U4-unknown-missing-column-medical_ins": {
+      "drafts": [
+        {
+          "cause": "undetermined",
+          "confidence": 0.41,
+          "evidence_refs": [
+            "medical_ins_bill.csv:16"
+          ],
+          "explanation_zh": "证据包里能用来判别成因的字段不足以定性，判不出是哪一类，交人工判定。（评测替身响应 · 行为 refuse）"
+        }
+      ],
+      "ref": "medical_ins_bill.csv:16",
+      "usage": {
+        "completion_tokens": 100,
+        "prompt_tokens": 1519,
+        "total_tokens": 1619
+      }
+    },
+    "U5-unknown-refund-shape-no-origin": {
+      "drafts": [
+        {
+          "cause": "undetermined",
+          "confidence": 0.41,
+          "evidence_refs": [
+            "wechat_bill.csv:21"
+          ],
+          "explanation_zh": "证据包里能用来判别成因的字段不足以定性，判不出是哪一类，交人工判定。（评测替身响应 · 行为 refuse）"
+        }
+      ],
+      "ref": "wechat_bill.csv:21",
+      "usage": {
+        "completion_tokens": 100,
+        "prompt_tokens": 1825,
+        "total_tokens": 1925
+      }
+    },
+    "U6-unknown-reused-order-no": {
+      "drafts": [
+        {
+          "cause": "channel_late_posting",
+          "confidence": 0.63,
+          "evidence_refs": [
+            "alipay_bill.csv:17"
+          ],
+          "explanation_zh": "渠道侧有这笔、HIS 侧查不到，按经验多半是对面结算入账慢。（评测替身响应 · 行为 hallucinate）"
+        }
+      ],
+      "ref": "alipay_bill.csv:17",
+      "usage": {
+        "completion_tokens": 100,
+        "prompt_tokens": 2885,
+        "total_tokens": 2985
+      }
+    }
+  },
+  "schema": "attrib-eval-responses/1"
+}

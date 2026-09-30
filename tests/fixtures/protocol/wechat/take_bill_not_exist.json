@@ -1,0 +1,6 @@
+{
+  "_comment": "账单不存在：HTTP 400，渠道 code=BILL_NOT_EXIST。不可重试——今天真没出账，退避到天荒也拿不到。",
+  "_http_status": 400,
+  "code": "BILL_NOT_EXIST",
+  "message": "账单不存在"
+}

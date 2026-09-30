@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  支付宝开放平台在 format=xml 或部分老接入下回 XML 信封（与 JSON 等价，
+  字段名相同）。本产品走 JSON（charset=utf-8、format 未指定时官方默认 JSON），
+  遇到 XML 必须**显式归一为 CHANNEL_REQUEST_FAILED**，不得解析失败后
+  当成「没取到账单」按空数据处理——那会让一整路账单凭空归零。
+  回放样例，字段按官方规范，非任何真实商户数据。
+-->
+<alipay>
+  <code>40004</code>
+  <msg>Business Failed</msg>
+  <sub_code>isv.invalid-signature</sub_code>
+  <sub_msg>签名验证失败</sub_msg>
+</alipay>

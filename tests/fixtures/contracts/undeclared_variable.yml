@@ -1,0 +1,54 @@
+# 坏契约 3：使用了未声明的变量占位
+# 声明了 period 与 session_timezone，却引用了没有声明的 hospital_code
+name: 未声明变量坏契约
+version: "0.1"
+channel: broken_variable
+
+variables:
+  period: "2026-W36"
+  session_timezone: "Asia/Shanghai"
+
+dataset:
+  name: 未声明变量账单表
+  tables:
+    - name: broken_bill
+      location: inbox/${period}/broken_variable/
+      columns:
+        - name: out_trade_no
+          data_type: string
+          required: true
+          checks:
+            - name: 订单号必填
+              path: [out_trade_no, not_empty]
+              type: not_empty
+        - name: amount
+          data_type: decimal
+          required: true
+          checks:
+            - name: 金额两位小数
+              path: [amount, scale]
+              type: decimal_scale
+              scale: 2
+        - name: trade_time
+          data_type: datetime
+          required: true
+          checks:
+            - name: 交易时间落在账期内
+              path: [trade_time, in_period]
+              type: cross_period
+              column: trade_time
+              period_variable: period
+              timezone_variable: session_timezone
+      checks:
+        - name: 笔数不为零
+          path: [rows, row_count]
+          type: row_count
+          min: 1
+
+checks:
+  - name: 按院区筛合计
+    path: [rows, amount_sum, by_hospital]
+    type: decimal_sum
+    column: amount
+    # hospital_code 既没在 variables 段声明，本轮也没有 --set 注入过
+    where: {hospital_code: "${hospital_code}"}

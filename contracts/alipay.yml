@@ -1,0 +1,112 @@
+# 支付宝账单对账契约
+# 维护人：财务科对账岗（口径）+ 信息科接口岗（取数与字段）
+# 注意：账单下载链接有效期 30 秒，取到即下载；EMPTY_DATA_WITH_BILL_FILE 视为有文件无数据
+name: 支付宝账单对账契约
+version: "1.0"
+channel: alipay
+description: 支付宝商家账单（交易账单）的对账口径
+
+variables:
+  period: "2026-W36"
+  session_timezone: "Asia/Shanghai"
+
+dataset:
+  name: 支付宝交易账单
+  tables:
+    - name: alipay_tradebill
+      location: inbox/${period}/alipay/
+      description: 支付宝账单文件（脱敏样例为本地文件通道，非最终对接方式）
+      columns:
+        - name: trade_no
+          data_type: string
+          description: 支付宝交易号
+          required: true
+          checks:
+            - name: 交易号唯一
+              path: [trade_no, unique]
+              type: unique
+            - name: 支付宝交易号格式
+              path: [trade_no, format]
+              type: matches_regex
+              # 支付宝交易号由渠道生成（28 位数字），样例账单按脱敏占位规则
+              # 写成 EX-ALIPAYTRX-<序号>。格式变了说明导出的是另一份账单，
+              # 后面与 HIS 收费记录的单号对齐会整体失准。
+              pattern: 'EX-ALIPAYTRX-\d{4}'
+        - name: out_trade_no
+          data_type: string
+          description: 商户订单号（对应 HIS 收费记录主键）
+          required: true
+        - name: biz_type
+          data_type: string
+          description: 业务类型
+          required: true
+          checks:
+            - name: 业务类型枚举
+              path: [biz_type, in_enum]
+              type: in_enum
+              # 支付宝官方账单「业务类型」列的取值就包括「销售分析」
+              #（这是支付宝对扫码/当面付收单的统一归类名，不是本院自造值）。
+              # 契约漏了它会让每一行正常账单都报红。
+              values: [销售分析, 订单支付, 订单退款, 扫码支付, 当面付款, 转账红包, 消费退款]
+        - name: amount
+          data_type: decimal
+          description: 金额（元）
+          required: true
+          checks:
+            - name: 金额两位小数
+              path: [amount, scale]
+              type: decimal_scale
+              scale: 2
+        - name: trade_time
+          data_type: datetime
+          description: 交易时间（渠道本地时间）
+          required: true
+        - name: income_expense
+          data_type: string
+          description: 收/支
+          required: true
+          checks:
+            - name: 收支方向枚举
+              path: [income_expense, in_enum]
+              type: in_enum
+              values: [收入, 支出, 不计收支]
+        - name: counterparty
+          data_type: string
+          description: 交易对方（脱敏样例中为占位，不落患者可识别明细）
+          required: false
+      checks:
+        - name: 账单笔数不为零
+          path: [rows, row_count]
+          type: row_count
+          min: 1
+        - name: 收入方向笔数不为零
+          path: [rows, income_count]
+          type: row_count
+          where: {income_expense: 收入}
+          min: 1
+
+# dataset 级对账口径
+checks:
+  - name: 收入金额合计与 HIS 对照
+    path: [rows, amount_sum, compare_his]
+    type: decimal_sum
+    column: amount
+    where: {income_expense: 收入}
+    tolerance: "0.01"
+  - name: 支出（退款）金额单列
+    path: [rows, expense_sum]
+    type: decimal_sum
+    column: amount
+    where: {income_expense: 支出}
+  - name: 跨日切分：交易时间须落在账期窗口内
+    path: [rows, trade_time, in_period]
+    type: cross_period
+    column: trade_time
+    period_variable: period
+    timezone_variable: session_timezone
+  - name: 退费红冲：支出行须与同单号收入行成对
+    path: [rows, refund, offset]
+    type: refund_offset
+    column: amount
+    where: {income_expense: 支出}
+    pair_column: out_trade_no

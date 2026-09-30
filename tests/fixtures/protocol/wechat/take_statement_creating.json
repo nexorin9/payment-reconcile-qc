@@ -1,0 +1,6 @@
+{
+  "_comment": "账单正在生成：HTTP 400，渠道 code=STATEMENT_CREATING。可重试——稍后确实能拿到。",
+  "_http_status": 400,
+  "code": "STATEMENT_CREATING",
+  "message": "账单正在生成，请稍后重试"
+}

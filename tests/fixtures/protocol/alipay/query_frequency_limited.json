@@ -1,0 +1,10 @@
+{
+  "_comment": "触发限频：code=40004 + sub_code=isv.overspeed-limit。映射为 CHANNEL_REQUEST_FAILED（渠道级，不在退避可重试集合内）——本产品对支付宝的限频不硬重试，避免把渠道配额打满。",
+  "_http_status": 200,
+  "alipay_bill_downloadurl_query_response": {
+    "code": "40004",
+    "msg": "Business Failed",
+    "sub_code": "isv.overspeed-limit",
+    "sub_msg": "触发频控，请稍后再试"
+  }
+}

@@ -1,0 +1,35 @@
+# 运行时数据与敏感文件
+.env
+data/
+logs/
+out/
+inbox/
+*.log
+*.tmp
+*.temp
+
+# Python
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# 构建产物
+node_modules/
+target/
+dist/
+build/
+coverage/
+.next/
+*.egg-info/
+
+# round 元数据，不进项目
+score.json
+
+# 注意：qrcode.jpg 必须保留（README 关注区块引用），不得排除

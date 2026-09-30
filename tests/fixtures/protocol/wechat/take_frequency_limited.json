@@ -1,0 +1,6 @@
+{
+  "_comment": "触发限频：HTTP 429，渠道 code=FREQUENCY_LIMITED。可重试且有上限，用尽后抛 RATE_LIMITED_EXHAUSTED。",
+  "_http_status": 429,
+  "code": "FREQUENCY_LIMITED",
+  "message": "触发频率限制，请稍后再试"
+}

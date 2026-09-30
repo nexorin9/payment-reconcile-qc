@@ -1,0 +1,208 @@
+{
+  "bundle": {
+    "bundle_version": "evidence-bundle/1",
+    "candidate_cap": 5,
+    "candidate_rank_basis": "input_order",
+    "candidate_rows": [
+      {
+        "amount": "40.00",
+        "cross_period": false,
+        "department": "门诊收费室",
+        "factors": [],
+        "hints": [],
+        "his_order_no": "EX-SELF-0008",
+        "is_refund": false,
+        "net_amount": "40.00",
+        "order_no": "EX-SELF-0008",
+        "period": "2026-W36",
+        "record_id": "EX-SELF-0008",
+        "ref": "charge_record.csv:71",
+        "refund": null,
+        "score": null,
+        "score_source": "claimed_row",
+        "settle_type": "现金",
+        "side": "his",
+        "source_file": "charge_record.csv",
+        "source_row_no": 71,
+        "tier": "",
+        "tier_zh": "",
+        "trade_time": "2026-09-05T16:41:00+08:00",
+        "trade_type": ""
+      }
+    ],
+    "candidate_shown": 1,
+    "candidate_source": "align.no_candidate_found",
+    "candidate_total": 1,
+    "candidate_truncated": false,
+    "channel": "self_service",
+    "channel_contract_slice": {
+      "available": true,
+      "check_shown": 8,
+      "check_total": 10,
+      "checks": [
+        {
+          "check_name": "订单号唯一",
+          "check_path": "out_trade_no.unique",
+          "column": "out_trade_no",
+          "operator": "unique",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 out_trade_no 上"
+        },
+        {
+          "check_name": "收费记录号格式",
+          "check_path": "out_trade_no.format",
+          "column": "out_trade_no",
+          "operator": "matches_regex",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 out_trade_no 上"
+        },
+        {
+          "check_name": "金额两位小数",
+          "check_path": "amount.scale",
+          "column": "amount",
+          "operator": "decimal_scale",
+          "relevance": "直接相关",
+          "why": "该口径既落在本差异涉及的列 amount 上，其判据也直接对应本差异形态"
+        },
+        {
+          "check_name": "金额区间",
+          "check_path": "amount.between",
+          "column": "amount",
+          "operator": "between",
+          "relevance": "直接相关",
+          "why": "该口径既落在本差异涉及的列 amount 上，其判据也直接对应本差异形态"
+        },
+        {
+          "check_name": "结算方式枚举",
+          "check_path": "settle_type.in_enum",
+          "column": "settle_type",
+          "operator": "in_enum",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 settle_type 上"
+        },
+        {
+          "check_name": "缴费金额合计与 HIS 对照",
+          "check_path": "rows.amount_sum.compare_his",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "红冲退费金额单列",
+          "check_path": "rows.refund_sum",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "退费红冲：红冲行须与同单号正向缴费行成对",
+          "check_path": "rows.is_refund.offset",
+          "column": "",
+          "operator": "refund_offset",
+          "relevance": "直接相关",
+          "why": "表级口径 refund_offset 的判据直接对应本差异形态"
+        }
+      ],
+      "contract_name": "自助机账单对账契约",
+      "contract_version": "1.0",
+      "reason": "",
+      "truncated": false
+    },
+    "channel_meta": {
+      "bill_type": "院内文件导出",
+      "bill_type_source": "channel_default",
+      "channel": "self_service",
+      "channel_zh": "院内自助机",
+      "evidence_slice_sha256": "d5242c9a8a55371e647dd6841c0f296f1c8b5f69ee5cf62d604a3f2ce9513944",
+      "source_file_count": 2,
+      "source_files": [
+        "charge_record.csv",
+        "self_service_bill.csv"
+      ]
+    },
+    "conclusion_key": "self_service:2026-W36:ex-self-0008",
+    "diff_row": {
+      "amount": "45.00",
+      "cross_period": false,
+      "department": "",
+      "his_order_no": "",
+      "is_refund": false,
+      "net_amount": "45.00",
+      "order_no": "EX-SELF-0008",
+      "period": "2026-W36",
+      "record_id": "EX-SELF-0008",
+      "ref": "self_service_bill.csv:4",
+      "refund": null,
+      "settle_type": "",
+      "side": "channel",
+      "source_file": "self_service_bill.csv",
+      "source_row_no": 4,
+      "trade_time": "2026-09-05T16:40:00+08:00",
+      "trade_type": ""
+    },
+    "diff_side": "channel",
+    "discrepancy": {
+      "detail": "渠道 45.00 元 vs HIS 40.00 元（charge_record.csv:71）",
+      "diff_amount": "5.00",
+      "kind": "mismatch",
+      "kind_zh": "已对齐但金额不符",
+      "needs_attribution": true
+    },
+    "history": {
+      "available": false,
+      "channel": "self_service",
+      "kind": "mismatch",
+      "periods": [
+        "2026-W32",
+        "2026-W33",
+        "2026-W34",
+        "2026-W35"
+      ],
+      "reasons": [
+        "未提供账单库连接：查不到历史处置结论（不等于没有先例）"
+      ],
+      "same_cause": {
+        "by_disposition": {},
+        "by_period": {},
+        "total": 0
+      },
+      "same_order_no": {
+        "available": false,
+        "by_period": {},
+        "occurrences": 0,
+        "reasons": [
+          "未提供账单库连接"
+        ]
+      },
+      "window_periods": 4
+    },
+    "period": "2026-W36",
+    "period_window": {
+      "available": true,
+      "end": "2026-09-07T00:00:00+08:00",
+      "half_open": true,
+      "period": "2026-W36",
+      "reason": "",
+      "start": "2026-08-31T00:00:00+08:00",
+      "tz": "Asia/Shanghai"
+    },
+    "same_order_no_rows": [],
+    "scoring_config_fingerprint": "d5ab8e742a1392f6b4dc863cd55a09154b327fbbefff188e667b2c03951a2c55"
+  },
+  "case_id": "08-self-service-mismatch",
+  "channel": "self_service",
+  "expect": {
+    "cause_codes": [
+      "contract_config_error",
+      "undetermined"
+    ],
+    "min_refs": 1,
+    "required_refs": [
+      "self_service_bill.csv:4"
+    ]
+  },
+  "kind": "mismatch",
+  "name_zh": "自助机：单号对上但两侧金额不等"
+}

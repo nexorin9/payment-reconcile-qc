@@ -1,0 +1,27 @@
+# 坏样例：权重写成裸小数（YAML 会解析成 float）
+#
+# 用途：tests/test_scoring.py 断言打分配置对浮点权重显式报错并点名字段。
+# 这不是「洁癖」—— 浮点权重在 strong_min 门槛比较上会产生边界翻转
+# （本该 0.8500 的候选算出 0.8499999…），且翻转与否随数据变化，
+# 现场表现就是「同样的两笔款上周是强候选这周不是」。
+#
+# tolerance 段刻意写成**带引号的字符串**：校验按 tolerance → weights 顺序
+# 报错，这里若也是裸小数，会先在 tolerance.amount 上炸掉，测试要的
+# 「点名 weights.amount」就永远走不到。weights 段里刻意只让 amount 一个
+# 是裸小数，其余带引号——报错必须精确到**那一个**字段。
+#
+# 本文件只用于测试数据层，不是产品配置。
+name: 打分配置坏样例（浮点权重）
+tolerance:
+  amount: "0.01"
+weights:
+  amount: 0.45
+  time: "0.25"
+  department: "0.15"
+  settle_type: "0.15"
+  cross_channel: "0.10"
+tiers:
+  strong_min: "0.85"
+  weak_min: "0.40"
+candidates:
+  max_per_row: 5

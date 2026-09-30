@@ -1,0 +1,30 @@
+{
+  "set_version": "2026-W36-v1",
+  "annotated_source": "本轮（round_089）由项目侧人工逐条标注：每条 case 的期望结论对照 reconq.align.ambiguity 的五种歧义形态与 matcher 的判定顺序逐条推演写出，并按 2026-W36 账期窗口（2026-08-31 00:00 → 2026-09-07 00:00，Asia/Shanghai）核对时刻落点。金额与单号一律为占位/类目（EX 前缀 GOLD），科室名取院内常见科室称呼，不含任何患者可识别明细。",
+  "annotated_at": "2026-09-30",
+  "annotator_role": "财务科对账岗（业务口径） + 信息科接口岗（取数与账期口径）联合标注",
+  "period": "2026-W36",
+  "amounts": "全部为脱敏占位金额，币种人民币元，两位小数；不映射到任何真实收费项目",
+  "order_nos": "全部为 GOLD-* 前缀占位单号，与 2026-W36 样例账单（EX-*/WXTXN-*）无交集",
+  "caliber_notes": [
+    "正类定义：期望标签 ≠ matched 即「需要人看一眼」。matched 与 mismatch 是干净对齐，mismatch 仍需人解释差额故计入正类。",
+    "GOLD-M-04 / GOLD-M-11：渠道行带行内退费，净额与 HIS 侧一致，期望 matched。net_amount = amount - refund。",
+    "GOLD-M-09：渠道行自带 his_order_no（院内导出填了），按 HIS 单号对齐；渠道侧 order_no 与 HIS 侧不同名。",
+    "GOLD-C-04 / GOLD-C-10：HIS 侧有同金额的另一笔但单号不同 —— 按金额+时间窗能弱匹配上，期望 weak_pending 而非 channel_only（这两条是「单边账」与「弱匹配」的分界线）。",
+    "GOLD-C-02：金额差 0.36，超 0.01 容差且无同单号候选，期望 channel_only。",
+    "GOLD-S-*：一码付拆笔，金额互不相同，期望 ambiguous/split。",
+    "GOLD-G-*：合并支付（多个 HIS 收费记录 → 一个渠道单号），字段形态与拆笔同形，期望标签同为 ambiguous，系统侧形态记 split；现场成因由人工判。",
+    "GOLD-E-*：候选金额与渠道行金额全同，系统侧无判别依据，期望 ambiguous/equal_amount。",
+    "GOLD-R-*：原单与红冲行并存，期望 ambiguous/refund_and_original。",
+    "GOLD-W-*：单号未命中、按金额+时间窗唯一命中一条，期望 weak_pending 且**不认领**。",
+    "GOLD-N-01/N-02/N-05/N-06：候选金额全同的弱匹配；GOLD-N-03/N-04：候选金额互不相同但仍不自动归并。",
+    "GOLD-P-*：单号命中唯一一条但该记录收费时间落在账期窗口外，期望 cross_period；时刻逐条按窗口边界（周一 00:00 半开）核对过。",
+    "GOLD-D-*：同一单号多行渠道行，focus_index 指向第二行（被拒的那次认领），期望 duplicate_claim。",
+    "GOLD-H-*：渠道行已对齐、HIS 侧另有未被任何渠道行认领的记录（现金/医保代收），期望 his_only —— 不得说成「某一路渠道漏了」。"
+  ],
+  "known_limitations": [
+    "拆笔与合并支付在字段层面同形，本金标集对二者的区分只体现在 note 与 layer 上，系统侧一律记 split。",
+    "本集只覆盖账期 2026-W36 一个窗口；跨账期连坐（W35/W37 组合）不在本集范围内。",
+    "本集是脱敏构造样本，不代表任何一家医院的真实错账分布；指标只用于对齐逻辑的回归验收，不作为真实账期结论。"
+  ]
+}

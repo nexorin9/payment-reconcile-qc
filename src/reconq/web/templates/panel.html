@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>支付对账数据质检系统 · 实时面板</title>
+<link rel="stylesheet" href="/static/panel.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-name">支付对账数据质检系统</span>
+    <span class="brand-sub">六路渠道账单 × HIS 收费流水</span>
+  </div>
+  <div class="period-picker">
+    <label for="period">账期</label>
+    <select id="period" disabled><option value="">（载入中…）</option></select>
+    <span id="gate" class="gate gate-none">未扫描</span>
+    <span id="status-zh" class="status-zh">未扫描</span>
+  </div>
+  <div class="stream-state">
+    <span id="sse-dot" class="dot dot-off"></span>
+    <span id="sse-text">实时推送未连接</span>
+  </div>
+</header>
+
+<div class="progress-track"><div id="progress-bar" class="progress-bar" style="width:0%"></div></div>
+<div id="progress-text" class="progress-text">已扫 0/6 渠道</div>
+
+<main class="three-col">
+
+  <!-- 左栏：六路渠道各自主态 -->
+  <section class="col col-channels">
+    <h2 class="col-title">渠道扫描态</h2>
+    <div id="channel-list" class="channel-list">
+      <p class="empty">本期账期未选择</p>
+    </div>
+  </section>
+
+  <!-- 中栏：差异与成因台账（全屏最显眼） -->
+  <section class="col col-diff">
+    <div class="col-head">
+      <h2 class="col-title">差异与成因台账</h2>
+      <div class="col-head-right">
+        <span class="sum-label">合计差额</span>
+        <span id="diff-total" class="sum">—</span>
+        <span id="diff-count" class="count"></span>
+      </div>
+    </div>
+    <!-- 筛选条：枚举全部由服务端下发，前端不硬编码一份词表 -->
+    <div class="filter-bar" role="search" aria-label="差异台账筛选">
+      <label class="fld fld-narrow">
+        <span>状态</span>
+        <select id="f-state"><option value="">全部</option></select>
+      </label>
+      <label class="fld">
+        <span>渠道</span>
+        <select id="f-channel"><option value="">全部</option></select>
+      </label>
+      <label class="fld">
+        <span>成因</span>
+        <select id="f-cause"><option value="">全部</option></select>
+      </label>
+      <label class="fld">
+        <span>形态</span>
+        <select id="f-kind"><option value="">全部</option></select>
+      </label>
+      <label class="fld fld-narrow">
+        <span>金额下限</span>
+        <input id="f-min" type="text" inputmode="decimal" placeholder="100.00">
+      </label>
+      <label class="fld fld-narrow">
+        <span>金额上限</span>
+        <input id="f-max" type="text" inputmode="decimal" placeholder="不限">
+      </label>
+      <label class="fld fld-check">
+        <input id="f-weak" type="checkbox">
+        <span>只看弱匹配</span>
+      </label>
+      <label class="fld fld-check">
+        <input id="f-ambig" type="checkbox">
+        <span>只看歧义</span>
+      </label>
+      <button id="f-reset" class="fld-btn" type="button">清空筛选</button>
+    </div>
+
+    <!-- 筛选反馈：被金额条件排除的脏行条数要显式说出来，不能悄悄消失 -->
+    <div id="filter-note" class="filter-note" hidden></div>
+
+    <!-- 按成因分组视图：组头可整组展开/收起 -->
+    <div class="group-bar">
+      <label class="fld fld-check">
+        <input id="g-toggle" type="checkbox" checked>
+        <span>按成因分组</span>
+      </label>
+      <span id="group-note" class="count"></span>
+    </div>
+    <div id="group-list" class="group-list" hidden></div>
+
+    <div id="diff-list" class="diff-list">
+      <p class="empty">本期账期未选择</p>
+    </div>
+  </section>
+
+  <!-- 右栏：单条差异的证据与处置 -->
+  <section class="col col-detail">
+    <h2 class="col-title">证据与处置</h2>
+    <!-- 待办聚合：这个角色该审什么。角色取自服务端的三岗位枚举 -->
+    <div class="todo-bar" role="group" aria-label="我的待办">
+      <label class="fld fld-narrow">
+        <span>我是</span>
+        <select id="todo-role"></select>
+      </label>
+      <div id="todo-sum" class="todo-sum">—</div>
+    </div>
+    <div id="detail" class="detail">
+      <p class="empty">在中栏点一条差异，这里显示它的证据行号与成因草稿</p>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footbar">
+  <div class="foot-left">账单库：<code>{{ db_path }}</code></div>
+  <div class="foot-right">
+    <a id="export-md" class="foot-export" href="#" download>下载结论单（md）</a>
+    <a id="export-csv" class="foot-export" href="#" download>下载结论单（csv）</a>
+    <span class="foot-hint">SSE 断线时每 8 秒自动拉一次；处置动作一律留痕，可导出周对账结论单</span>
+  </div>
+</footer>
+
+<script>window.RECONQ_CHANNELS = {{ channels | tojson }};</script>
+<script src="/static/panel.js"></script>
+</body>
+</html>

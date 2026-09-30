@@ -1,0 +1,181 @@
+{
+  "bundle": {
+    "bundle_version": "evidence-bundle/1",
+    "candidate_cap": 5,
+    "candidate_rank_basis": "input_order",
+    "candidate_rows": [],
+    "candidate_shown": 0,
+    "candidate_source": "align.no_candidate_found",
+    "candidate_total": 0,
+    "candidate_truncated": false,
+    "channel": "wechat",
+    "channel_contract_slice": {
+      "available": true,
+      "check_shown": 8,
+      "check_total": 15,
+      "checks": [
+        {
+          "check_name": "账单笔数不为零",
+          "check_path": "rows.row_count",
+          "column": "",
+          "operator": "row_count",
+          "relevance": "直接相关",
+          "why": "表级口径 row_count 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "成功交易笔数不为零",
+          "check_path": "rows.success_count",
+          "column": "",
+          "operator": "row_count",
+          "relevance": "直接相关",
+          "why": "表级口径 row_count 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "商户订单号必填",
+          "check_path": "out_trade_no.not_empty",
+          "column": "out_trade_no",
+          "operator": "not_empty",
+          "relevance": "直接相关",
+          "why": "该口径既落在本差异涉及的列 out_trade_no 上，其判据也直接对应本差异形态"
+        },
+        {
+          "check_name": "金额两位小数",
+          "check_path": "amount.scale",
+          "column": "amount",
+          "operator": "decimal_scale",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 amount 上"
+        },
+        {
+          "check_name": "金额非负",
+          "check_path": "amount.min",
+          "column": "amount",
+          "operator": "between",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 amount 上"
+        },
+        {
+          "check_name": "订单金额合计与 HIS 对照",
+          "check_path": "rows.amount_sum.compare_his",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "退款金额合计单列",
+          "check_path": "rows.refund_sum",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "本期退款金额须为零（出现退费须财务科逐笔确认）",
+          "check_path": "rows.refund_sum.zero",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        }
+      ],
+      "contract_name": "微信支付账单对账契约",
+      "contract_version": "1.0",
+      "reason": "",
+      "truncated": false
+    },
+    "channel_meta": {
+      "bill_type": "ALL",
+      "bill_type_source": "channel_default",
+      "channel": "wechat",
+      "channel_zh": "微信支付",
+      "evidence_slice_sha256": "bba28aa919926992b14ed0eb8ac362bde7ce896447fec2a5ef5ea8f13bd355b2",
+      "source_file_count": 1,
+      "source_files": [
+        "wechat_bill.csv"
+      ]
+    },
+    "conclusion_key": "wechat:2026-W36:ex-only-0001",
+    "diff_row": {
+      "amount": "66.00",
+      "cross_period": false,
+      "department": "",
+      "his_order_no": "",
+      "is_refund": false,
+      "net_amount": "66.00",
+      "order_no": "EX-ONLY-0001",
+      "period": "2026-W36",
+      "record_id": "EX-ONLY-0001",
+      "ref": "wechat_bill.csv:3",
+      "refund": null,
+      "settle_type": "",
+      "side": "channel",
+      "source_file": "wechat_bill.csv",
+      "source_row_no": 3,
+      "trade_time": "2026-09-02T10:00:00+08:00",
+      "trade_type": ""
+    },
+    "diff_side": "channel",
+    "discrepancy": {
+      "detail": "渠道 wechat_bill.csv:3 金额 66.00 元，单号 EX-ONLY-0001 在 HIS 侧本账期无任何记录；请确认是漏收费、挂账未记还是跨账期落点",
+      "diff_amount": "",
+      "kind": "channel_only",
+      "kind_zh": "渠道有 HIS 无",
+      "needs_attribution": true
+    },
+    "history": {
+      "available": false,
+      "channel": "wechat",
+      "kind": "channel_only",
+      "periods": [
+        "2026-W32",
+        "2026-W33",
+        "2026-W34",
+        "2026-W35"
+      ],
+      "reasons": [
+        "未提供账单库连接：查不到历史处置结论（不等于没有先例）"
+      ],
+      "same_cause": {
+        "by_disposition": {},
+        "by_period": {},
+        "total": 0
+      },
+      "same_order_no": {
+        "available": false,
+        "by_period": {},
+        "occurrences": 0,
+        "reasons": [
+          "未提供账单库连接"
+        ]
+      },
+      "window_periods": 4
+    },
+    "period": "2026-W36",
+    "period_window": {
+      "available": true,
+      "end": "2026-09-07T00:00:00+08:00",
+      "half_open": true,
+      "period": "2026-W36",
+      "reason": "",
+      "start": "2026-08-31T00:00:00+08:00",
+      "tz": "Asia/Shanghai"
+    },
+    "same_order_no_rows": [],
+    "scoring_config_fingerprint": "d5ab8e742a1392f6b4dc863cd55a09154b327fbbefff188e667b2c03951a2c55"
+  },
+  "case_id": "01-channel-only-his-missing",
+  "channel": "wechat",
+  "expect": {
+    "cause_codes": [
+      "his_missing_order",
+      "channel_late_posting"
+    ],
+    "min_refs": 1,
+    "required_refs": [
+      "wechat_bill.csv:3"
+    ]
+  },
+  "kind": "channel_only",
+  "name_zh": "单边账：渠道有、HIS 查无此笔"
+}

@@ -1,0 +1,10 @@
+{
+  "_comment": "支付宝 alipay.data.dataservice.bill.downloadurl.query 成功响应。bill_url 有效期 30 秒；sign 为占位（验签测试另用本地自签密钥现算）。回放样例，非任何真实商户数据。",
+  "_http_status": 200,
+  "alipay_bill_downloadurl_query_response": {
+    "code": "10000",
+    "msg": "Success",
+    "bill_url": "https://dwbillcenter.alipay.com/downloadBillFile.resource?bill=EXAM&cp=EXAM_PLACEHOLDER&ft=EXAM_PLACEHOLDER",
+    "sign": "EXAM_PLACEHOLDER_SIGNATURE"
+  }
+}

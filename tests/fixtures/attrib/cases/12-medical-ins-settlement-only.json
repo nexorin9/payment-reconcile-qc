@@ -1,0 +1,157 @@
+{
+  "bundle": {
+    "bundle_version": "evidence-bundle/1",
+    "candidate_cap": 5,
+    "candidate_rank_basis": "input_order",
+    "candidate_rows": [],
+    "candidate_shown": 0,
+    "candidate_source": "align.no_candidate_found",
+    "candidate_total": 0,
+    "candidate_truncated": false,
+    "channel": "medical_ins",
+    "channel_contract_slice": {
+      "available": true,
+      "check_shown": 5,
+      "check_total": 10,
+      "checks": [
+        {
+          "check_name": "结算号格式",
+          "check_path": "settlement_no.format",
+          "column": "",
+          "operator": "matches_regex",
+          "relevance": "直接相关",
+          "why": "表级口径 matches_regex 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "结算单笔数不为零",
+          "check_path": "rows.row_count",
+          "column": "",
+          "operator": "row_count",
+          "relevance": "直接相关",
+          "why": "表级口径 row_count 的判据直接对应本差异形态"
+        },
+        {
+          "check_name": "结算号唯一",
+          "check_path": "settlement_no.unique",
+          "column": "settlement_no",
+          "operator": "unique",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 settlement_no 上"
+        },
+        {
+          "check_name": "金额合计两位小数",
+          "check_path": "total_amount.scale",
+          "column": "total_amount",
+          "operator": "decimal_scale",
+          "relevance": "涉及本列",
+          "why": "该口径落在本差异涉及的列 total_amount 上"
+        },
+        {
+          "check_name": "金额合计与 HIS 对照",
+          "check_path": "rows.total_amount_sum.compare_his",
+          "column": "",
+          "operator": "decimal_sum",
+          "relevance": "直接相关",
+          "why": "表级口径 decimal_sum 的判据直接对应本差异形态"
+        }
+      ],
+      "contract_name": "医保结算对账契约",
+      "contract_version": "1.0",
+      "reason": "",
+      "truncated": false
+    },
+    "channel_meta": {
+      "bill_type": "院内文件导出",
+      "bill_type_source": "channel_default",
+      "channel": "medical_ins",
+      "channel_zh": "医保结算",
+      "evidence_slice_sha256": "234917f8e0be324ea3d485d42c5fff2d5242a8abf973d5cd677991fa50e54cf4",
+      "source_file_count": 1,
+      "source_files": [
+        "medical_ins_bill.csv"
+      ]
+    },
+    "conclusion_key": "medical_ins:2026-W36:ex-mi-0012",
+    "diff_row": {
+      "amount": "320.00",
+      "cross_period": false,
+      "department": "",
+      "his_order_no": "",
+      "is_refund": false,
+      "net_amount": "320.00",
+      "order_no": "EX-MI-0012",
+      "period": "2026-W36",
+      "record_id": "EX-MI-0012",
+      "ref": "medical_ins_bill.csv:3",
+      "refund": null,
+      "settle_type": "",
+      "side": "channel",
+      "source_file": "medical_ins_bill.csv",
+      "source_row_no": 3,
+      "trade_time": "2026-09-06T15:20:00+08:00",
+      "trade_type": ""
+    },
+    "diff_side": "channel",
+    "discrepancy": {
+      "detail": "渠道 medical_ins_bill.csv:3 金额 320.00 元，单号 EX-MI-0012 在 HIS 侧本账期无任何记录；请确认是漏收费、挂账未记还是跨账期落点",
+      "diff_amount": "",
+      "kind": "channel_only",
+      "kind_zh": "渠道有 HIS 无",
+      "needs_attribution": true
+    },
+    "history": {
+      "available": false,
+      "channel": "medical_ins",
+      "kind": "channel_only",
+      "periods": [
+        "2026-W32",
+        "2026-W33",
+        "2026-W34",
+        "2026-W35"
+      ],
+      "reasons": [
+        "未提供账单库连接：查不到历史处置结论（不等于没有先例）"
+      ],
+      "same_cause": {
+        "by_disposition": {},
+        "by_period": {},
+        "total": 0
+      },
+      "same_order_no": {
+        "available": false,
+        "by_period": {},
+        "occurrences": 0,
+        "reasons": [
+          "未提供账单库连接"
+        ]
+      },
+      "window_periods": 4
+    },
+    "period": "2026-W36",
+    "period_window": {
+      "available": true,
+      "end": "2026-09-07T00:00:00+08:00",
+      "half_open": true,
+      "period": "2026-W36",
+      "reason": "",
+      "start": "2026-08-31T00:00:00+08:00",
+      "tz": "Asia/Shanghai"
+    },
+    "same_order_no_rows": [],
+    "scoring_config_fingerprint": "d5ab8e742a1392f6b4dc863cd55a09154b327fbbefff188e667b2c03951a2c55"
+  },
+  "case_id": "12-medical-ins-settlement-only",
+  "channel": "medical_ins",
+  "expect": {
+    "cause_codes": [
+      "his_missing_order",
+      "channel_late_posting"
+    ],
+    "min_refs": 1,
+    "required_refs": [
+      "medical_ins_bill.csv:3"
+    ]
+  },
+  "kind": "channel_only",
+  "name_zh": "医保侧：结算单有、HIS 收费流水查无对应记录"
+}
